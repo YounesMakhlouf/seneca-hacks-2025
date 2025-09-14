@@ -5,7 +5,15 @@
   <img src="https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white" alt="MongoDB" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/Status-Hackathon-blue" alt="Status: Hackathon" />
+  <h2 style="margin: 8px 0 0;">Team 2 cham3at</h2>
+  <p><strong>Members:</strong> Salma Bouabidi • Younes Makhlouf • Khelil Mehdi • Mahdi chaabane</p>
 </div>
+
+---
+
+## 🎥 Demo Video
+
+[Watch the demo (Google Drive)](https://drive.google.com/drive/u/0/folders/1ktH9sNaFTbd5ufky4jjQHtsg8B3Qp7Ie)
 
 ---
 
