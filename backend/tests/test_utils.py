@@ -1,17 +1,26 @@
 """Tests for utility functions."""
 
-import pytest
-import numpy as np
-from unittest.mock import patch
 from datetime import datetime
+from unittest.mock import patch
 
+import numpy as np
+
+from body_behavior_recommender.models import MealTemplate, WorkoutTemplate
 from body_behavior_recommender.utils import (
-    clamp01, normalize01, mean_std, get_today_iso, compute_hr_max,
-    energy_cap_from_state, target_bpm_from_state, cosine_pref_fit,
-    novelty_bonus, repetition_penalty, risk_penalties_meal,
-    risk_penalties_workout, zone_from_state
+    clamp01,
+    compute_hr_max,
+    cosine_pref_fit,
+    energy_cap_from_state,
+    get_today_iso,
+    mean_std,
+    normalize01,
+    novelty_bonus,
+    repetition_penalty,
+    risk_penalties_meal,
+    risk_penalties_workout,
+    target_bpm_from_state,
+    zone_from_state,
 )
-from body_behavior_recommender.models import UserProfile, MealTemplate, WorkoutTemplate
 
 
 class TestMathHelpers:
@@ -77,7 +86,7 @@ class TestTimeHelpers:
 
     def test_get_today_iso_with_none(self):
         """Test get_today_iso with None (should use current date)."""
-        with patch('body_behavior_recommender.utils.datetime') as mock_datetime:
+        with patch("body_behavior_recommender.utils.datetime") as mock_datetime:
             mock_datetime.utcnow.return_value = datetime(2024, 1, 15, 10, 30, 0)
             result = get_today_iso(None)
             assert result == "2024-01-15"
@@ -241,7 +250,7 @@ class TestNoveltyAndPenalties:
             sugar_g=10.0,
             sodium_mg=800.0,
             allergens=["nuts"],  # User has nuts allergy
-            diet_ok=["omnivore", "vegetarian"]
+            diet_ok=["omnivore", "vegetarian"],
         )
         result = risk_penalties_meal(meal, sample_user)
         assert result == 1.0  # Hard violation
@@ -260,7 +269,7 @@ class TestNoveltyAndPenalties:
             sugar_g=0.0,
             sodium_mg=600.0,
             allergens=[],
-            diet_ok=["omnivore"]  # User is vegetarian
+            diet_ok=["omnivore"],  # User is vegetarian
         )
         result = risk_penalties_meal(meal, sample_user)
         assert result == 1.0  # Hard violation
@@ -279,7 +288,7 @@ class TestNoveltyAndPenalties:
             sugar_g=5.0,
             sodium_mg=500.0,
             allergens=[],
-            diet_ok=["vegetarian", "omnivore"]
+            diet_ok=["vegetarian", "omnivore"],
         )
         result = risk_penalties_meal(meal, sample_user)
         assert result == 0.0  # No violations
@@ -293,7 +302,7 @@ class TestNoveltyAndPenalties:
             impact="high",
             equipment_needed=[],
             duration_min=45,
-            focus_tags=["cardio", "intense"]
+            focus_tags=["cardio", "intense"],
         )
         state = {"Readiness": 30, "Strain": 50}
         result = risk_penalties_workout(workout, sample_user, state)
@@ -308,7 +317,7 @@ class TestNoveltyAndPenalties:
             impact="low",
             equipment_needed=["dumbbells"],
             duration_min=30,
-            focus_tags=["strength"]
+            focus_tags=["strength"],
         )
         state = {"Readiness": 70, "Strain": 30}
         result = risk_penalties_workout(workout, sample_user, state)

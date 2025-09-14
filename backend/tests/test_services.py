@@ -1,17 +1,18 @@
 """Tests for isolated service functions without circular imports."""
 
-import pytest
 import numpy as np
-from unittest.mock import patch, MagicMock
 
 # Import models directly
 from body_behavior_recommender.models import (
-    UserProfile, SleepEntry, NutritionEntry, ActivityEntry, Feedback
+    ActivityEntry,
+    Feedback,
+    NutritionEntry,
+    SleepEntry,
 )
 
 # Test the core functions that don't depend on global state
 from body_behavior_recommender.utils import (
-    clamp01, cosine_pref_fit, risk_penalties_meal, risk_penalties_workout
+    clamp01,
 )
 
 
@@ -20,6 +21,7 @@ class TestServiceLogicIsolated:
 
     def test_choose_domain_logic(self):
         """Test domain selection logic."""
+
         # Import the function directly to avoid circular imports
         def choose_domain_logic(intent, state, hours_since_last_meal):
             """Isolated version of choose_domain logic."""
@@ -51,17 +53,28 @@ class TestServiceLogicIsolated:
 
     def test_reward_calculation_logic(self):
         """Test reward calculation logic."""
+
         def reward_from_feedback_logic(domain, fb):
             """Isolated version of reward calculation."""
             if domain == "music":
-                return clamp01(0.4*(fb.hr_zone_frac or 0) + 0.3*(1 if fb.thumbs>0 else 0) +
-                             0.2*(fb.completed or 0) + 0.1*(0 if (fb.skipped_early or 0) else 1))
+                return clamp01(
+                    0.4 * (fb.hr_zone_frac or 0)
+                    + 0.3 * (1 if fb.thumbs > 0 else 0)
+                    + 0.2 * (fb.completed or 0)
+                    + 0.1 * (0 if (fb.skipped_early or 0) else 1)
+                )
             if domain == "meal":
-                return clamp01(0.5*(fb.ate or 0) + 0.3*(fb.protein_gap_closed_norm or 0) +
-                             0.2*(1 if fb.thumbs>0 else 0))
+                return clamp01(
+                    0.5 * (fb.ate or 0)
+                    + 0.3 * (fb.protein_gap_closed_norm or 0)
+                    + 0.2 * (1 if fb.thumbs > 0 else 0)
+                )
             if domain == "workout":
-                return clamp01(0.4*(fb.completed or 0) + 0.3*(fb.hr_zone_frac or 0) +
-                             0.3*(1 - min(1.0, abs((fb.rpe or 0) - 5)/5)))
+                return clamp01(
+                    0.4 * (fb.completed or 0)
+                    + 0.3 * (fb.hr_zone_frac or 0)
+                    + 0.3 * (1 - min(1.0, abs((fb.rpe or 0) - 5) / 5))
+                )
             return 0.0
 
         # Test music reward - positive feedback
@@ -72,7 +85,7 @@ class TestServiceLogicIsolated:
             thumbs=1,
             completed=1,
             hr_zone_frac=0.8,
-            skipped_early=0
+            skipped_early=0,
         )
         reward = reward_from_feedback_logic("music", feedback)
         assert 0.0 <= reward <= 1.0
@@ -85,7 +98,7 @@ class TestServiceLogicIsolated:
             item_id="meal_1",
             thumbs=1,
             ate=1,
-            protein_gap_closed_norm=0.8
+            protein_gap_closed_norm=0.8,
         )
         reward = reward_from_feedback_logic("meal", feedback)
         assert 0.0 <= reward <= 1.0
@@ -98,7 +111,7 @@ class TestServiceLogicIsolated:
             item_id="workout_1",
             completed=1,
             hr_zone_frac=0.7,
-            rpe=5.0  # Perfect target RPE
+            rpe=5.0,  # Perfect target RPE
         )
         reward = reward_from_feedback_logic("workout", feedback)
         assert 0.0 <= reward <= 1.0
@@ -106,6 +119,7 @@ class TestServiceLogicIsolated:
 
     def test_preference_update_logic(self, sample_user):
         """Test preference update logic."""
+
         def update_preferences_logic(user, domain, item_tags, thumbs):
             """Isolated version of preference update logic."""
             if thumbs == 0 or not item_tags:
@@ -114,15 +128,21 @@ class TestServiceLogicIsolated:
             if domain == "music":
                 for t in item_tags:
                     w = user.pref_music_genres.get(t, 0.0)
-                    user.pref_music_genres[t] = float(np.clip(w + (lr_fast if thumbs>0 else -lr_fast), 0.0, 1.0))
+                    user.pref_music_genres[t] = float(
+                        np.clip(w + (lr_fast if thumbs > 0 else -lr_fast), 0.0, 1.0)
+                    )
             elif domain == "meal":
                 for t in item_tags:
                     w = user.pref_meal_cuisines.get(t, 0.0)
-                    user.pref_meal_cuisines[t] = float(np.clip(w + (lr_fast if thumbs>0 else -lr_fast), 0.0, 1.0))
+                    user.pref_meal_cuisines[t] = float(
+                        np.clip(w + (lr_fast if thumbs > 0 else -lr_fast), 0.0, 1.0)
+                    )
             elif domain == "workout":
                 for t in item_tags:
                     w = user.pref_workout_focus.get(t, 0.0)
-                    user.pref_workout_focus[t] = float(np.clip(w + (lr_fast if thumbs>0 else -lr_fast), 0.0, 1.0))
+                    user.pref_workout_focus[t] = float(
+                        np.clip(w + (lr_fast if thumbs > 0 else -lr_fast), 0.0, 1.0)
+                    )
 
         # Test positive music preference update
         initial_pop = sample_user.pref_music_genres.get("pop", 0.0)
@@ -148,7 +168,7 @@ class TestServiceLogicIsolated:
                 light_sleep_minutes=270,
                 sleep_efficiency=90.0,
                 bedtime="22:00",
-                wake_time="06:00"
+                wake_time="06:00",
             )
         ]
 
@@ -178,7 +198,7 @@ class TestServiceLogicIsolated:
             fat_g=70.0,
             fiber_g=35.0,
             sugar_g=30.0,
-            sodium_mg=1500.0
+            sodium_mg=1500.0,
         )
 
         # Protein target for weight loss goal
@@ -213,7 +233,7 @@ class TestServiceLogicIsolated:
                 active_minutes=45,
                 distance_km=6.0,
                 heart_rate_avg=140,
-                workout_duration=30
+                workout_duration=30,
             ),
             ActivityEntry(
                 user_id="test_user_1",
@@ -223,8 +243,8 @@ class TestServiceLogicIsolated:
                 active_minutes=45,
                 distance_km=6.0,
                 heart_rate_avg=140,
-                workout_duration=30
-            )
+                workout_duration=30,
+            ),
         ]
 
         today_activity = activity_entries[-1]

@@ -126,6 +126,7 @@ class RecommendResponse(BaseModel):
     state: Dict[str, int]
     item: Dict
     bandit_arm: str
+    explanation: Optional[str] = None
 
 
 class Feedback(BaseModel):
