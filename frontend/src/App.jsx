@@ -10,6 +10,7 @@ import WorkoutActive from './pages/WorkoutActive';
 import Meals from './pages/Meals';
 import Settings from './pages/Settings';
 import FormCorrector from './pages/FormCorrector';
+import LiveCoach from './pages/LiveCoach';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/meals" element={<Meals />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/form-corrector" element={<FormCorrector />} />
+          <Route path="/live-coach" element={<LiveCoach />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppShell>
