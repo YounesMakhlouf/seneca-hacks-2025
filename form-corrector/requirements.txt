@@ -1,4 +1,7 @@
 opencv-python>=4.7.0
 mediapipe>=0.10.0
 numpy>=1.24.0
-pytube>=15.0.0   # Optional, if you want to download YouTube videos
+pytube>=15.0.0
+uvicorn>=0.22.0
+fastapi>=0.110.0
+python-multipart>=0.0.6

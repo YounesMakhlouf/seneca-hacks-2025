@@ -9,6 +9,7 @@ export default function Settings() {
         <ul className="list-disc pl-5 text-sm text-slate-600">
           <li><Link to="/login" className="text-primary">Login</Link></li>
           <li><Link to="/" className="text-primary">Welcome</Link></li>
+          <li><Link to="/form-corrector" className="text-primary">Open Form Corrector</Link></li>
         </ul>
       </div>
     </div>
