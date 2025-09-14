@@ -156,7 +156,14 @@ def submit_feedback(fb: Feedback):
     doc = db_get_user(fb.user_id)
     if not doc:
         raise HTTPException(404, "user not found")
-    
+    # Validate item id belongs to the correct catalog
+    if fb.domain == "music" and not any(m.id == fb.item_id for m in MUSIC):
+        raise HTTPException(400, f"invalid music item_id '{fb.item_id}'")
+    if fb.domain == "meal" and not any(m.id == fb.item_id for m in MEALS):
+        raise HTTPException(400, f"invalid meal item_id '{fb.item_id}'")
+    if fb.domain == "workout" and not any(w.id == fb.item_id for w in WORKOUTS):
+        raise HTTPException(400, f"invalid workout item_id '{fb.item_id}'")
+
     # Convert feedback to dict for Kafka message
     feedback_data = {
         "user_id": fb.user_id,
@@ -170,15 +177,15 @@ def submit_feedback(fb: Feedback):
         "protein_gap_closed_norm": fb.protein_gap_closed_norm,
         "rpe": fb.rpe
     }
-    
+
     # Send feedback message to Kafka for async processing
     success = send_feedback_async(feedback_data)
-    
+
     if not success:
         raise HTTPException(500, "Failed to queue feedback for processing")
-    
+
     return {
-        "ok": True, 
+        "ok": True,
         "message": "Feedback queued for async processing",
         "user_id": fb.user_id,
         "domain": fb.domain
