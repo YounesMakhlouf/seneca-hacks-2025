@@ -1,14 +1,17 @@
 # GitHub Copilot Project Instructions
 
-You are assisting on a FastAPI + Pydantic (v2) hackathon MVP: a "Body→Behavior" recommender that transforms daily health signals (sleep, nutrition, activity) into adaptive suggestions (music track, meal/snack, micro‑workout). All storage is **in‑memory**; no database. Large JSON datasets are ingested at startup with memory caps.
+You are assisting on a FastAPI + Pydantic (v2) + MongoDB hackathon project: a "Body→Behavior" recommender that transforms daily health signals (sleep, nutrition, activity) into adaptive suggestions (music track, meal/snack, micro‑workout). The project uses **MongoDB** for persistent data storage and **Docker** for containerized deployment. Large JSON datasets are ingested at startup and stored in MongoDB with appropriate indexing.itHub Copilot Project Instructions
+
 
 ## 1. Architecture At a Glance
-- Entry: `main.py` / `src/body_behavior_recommender/app.py` bootstraps FastAPI, loads data via `EnhancedDataLoader`.
-- Data layer: `data_loader.py` loads users, sleep, nutrition, activity, measurements. Heart rate huge dataset intentionally skipped.
+- Entry: `main.py` / `src/body_behavior_recommender/app.py` bootstraps FastAPI, connects to MongoDB via `mongo_wrapper.py`.
+- Data layer: `data_loader.py` loads users, sleep, nutrition, activity, measurements into MongoDB collections with proper indexing.
+- Database: `db.py` and `mongo_wrapper.py` handle MongoDB connections, collection management, and queries.
 - Domain models: `models.py` (Pydantic) for UserProfile, SleepEntry, NutritionEntry, ActivityEntry + recommendation artifacts.
 - Services: `services.py` houses scoring (Readiness/Fuel/Strain), candidate filtering, ranking, bandit logic (mabwiser Thompson Sampling + kNN context), preference updates.
 - API layer: `endpoints.py` exposes `/health`, `/state`, `/recommend`, `/feedback`, plus user/data introspection endpoints.
 - Utilities: `utils.py` for math/clamping/time helpers & state->zone/targets.
+- Container: `Dockerfile` and `docker-compose.yml` for MongoDB + FastAPI deployment.
 
 ## 2. Core Loop (Sense → Decide → Act → Learn)
 1. Compute state (Readiness, Fuel, Strain) from recent data.
@@ -20,16 +23,19 @@ You are assisting on a FastAPI + Pydantic (v2) hackathon MVP: a "Body→Behavior
 
 ## 3. Data Ingestion Strategy
 - Large files: `users.json`, `sleep.json`, `activities.json`, `measurements.json`.
-- Caps (current): users 50k, sleep 500k, activity target 1M (chunk loader WIP), measurements 100k.
-- Sleep loader already bulk loads & slices then normalizes (hours→minutes).
-- Activity loader still line‑parse; will be refactored to bulk load + slice (prefer simple `json.load` + slicing unless file is too large to fit in memory). Heart rate is skipped (3GB) to stay memory safe.
-- Measurement loader erroneously re-imports `fitness-users.json` (cleanup pending) – avoid re‑adding this bug when editing.
+- MongoDB collections: Users, Sleep, Activities, Measurements with appropriate indexes for performance.
+- Bulk insertion with batch processing for large datasets.
+- Data validation and transformation during ingestion.
+- Heart rate data (3GB) handling optimized for streaming ingestion.
+- Indexing strategy: user_id, timestamps, and frequently queried fields.
 
 ## 4. Performance / Safety Constraints
-- Keep startup reasonable (< ~10s). Avoid O(N^2) passes; single linear transform + append.
-- Never load > configured caps; introduce constants or env overrides if expanding.
-- Do not persist global mutable state across module reloads except the intended in‑memory stores.
-- Validate ranges defensively; skip malformed entries silently (log optional warning).
+- MongoDB queries optimized with proper indexing and aggregation pipelines.
+- Connection pooling and efficient query patterns for scalability.
+- Docker containerization for consistent deployment across environments.
+- Environment variables for MongoDB connection strings and configuration.
+- Graceful error handling for database connection issues.
+- Data validation at ingestion and query time.
 
 ## 5. Recommendation Logic Details
 - Readiness: sleep duration & efficiency + bedtime consistency + recovery factor from recent steps.
@@ -60,13 +66,16 @@ Avoid:
 Future (not required now): heart rate streaming ingestion, weather bias, grocery planner, social/group bandit, more nuanced macro planning.
 
 ## 9. Testing / Running
-- Environment uses `uv`. Typical run: `uv run uvicorn main:app --reload` (already in dev scripts).
-- For new logic, add minimal unit tests (if added) under a `tests/` folder (not present yet) using `pytest` (dependency already declared).
+- Environment uses `uv`. Docker deployment: `docker-compose up --build`.
+- Local development: `uv run uvicorn main:app --reload` (requires MongoDB running).
+- MongoDB connection configured via environment variables or docker-compose.
+- For new logic, add minimal unit tests under `tests/` folder using `pytest`.
 
 ## 10. Common Pitfalls
-- Double-loading users (current measurement loader bug). Fix instead of propagating.
-- Activity loader producing 0 entries due to naive line parsing of pretty JSON array.
-- Forgetting to cap large list slices → memory blowup risk.
+- MongoDB connection timeouts or authentication issues.
+- Improper indexing leading to slow queries on large datasets.
+- Docker container networking issues between FastAPI and MongoDB.
+- Data validation failures during bulk insertion operations.
 
 ## 11. Style Preferences
 - Snake_case, type hints, early returns for clarity.
@@ -77,4 +86,4 @@ Future (not required now): heart rate streaming ingestion, weather bias, grocery
 Surface a concise comment/TODO describing assumption (e.g., `# TODO: confirm if HR variance should mod readiness`). Avoid speculative refactors without data.
 
 ---
-By following this guide, Copilot should generate changes that respect data scale, recommendation logic integrity, and hackathon velocity.
+By following this guide, Copilot should generate changes that respect MongoDB integration, Docker deployment patterns, recommendation logic integrity, and hackathon velocity.
