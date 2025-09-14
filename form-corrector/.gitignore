@@ -5,6 +5,7 @@ __pycache__/
 
 exercise_env/
 *.mp4
+!output_pushup.mp4
 # C extensions
 *.so
 
