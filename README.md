@@ -104,8 +104,8 @@ Score = 0.35×GoalFit + 0.30×StateFit + 0.25×PrefFit + 0.10×Novelty - Penalti
 ### **Production Deployment:**
 ```bash
 # Clone and start the entire stack
-git clone <repository>
-cd hackathon
+git clone https://github.com/YounesMakhlouf/seneca-hacks-2025.git
+cd seneca-hacks-2025
 docker-compose up --build
 
 # API available at http://localhost:8000
