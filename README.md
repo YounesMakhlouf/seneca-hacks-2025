@@ -121,12 +121,6 @@ docker-compose up mongodb
 uv run uvicorn main:app --reload
 ```
 
-### **Environment Configuration:**
-```env
-MONGODB_URL=mongodb://localhost:27017
-MONGODB_DB_NAME=body_behavior_db
-LOG_LEVEL=INFO
-```
 
 ---
 
@@ -158,35 +152,6 @@ curl -X POST http://localhost:8000/recommend \
   -H "Content-Type: application/json" \
   -d '{"user_id": "user_123"}'
 ```
-
----
-
-## 🎯 Judging Criteria Alignment
-
-### **🚀 Innovation (25%)**
-- Multi-domain adaptive recommendations
-- Advanced bandit learning with contextual adaptation
-- Real-time state computation from health signals
-
-### **⚡ Technical Excellence (25%)**
-- Scalable MongoDB + Docker architecture
-- Efficient data processing and storage
-- Type-safe Pydantic models and FastAPI integration
-
-### **📈 Scalability (20%)**
-- Handles millions of records with optimized indexing
-- Docker deployment for easy scaling
-- Efficient query patterns and aggregation pipelines
-
-### **🎨 User Experience (15%)**
-- Simple, intuitive API design
-- Real-time personalized recommendations
-- Comprehensive feedback and learning system
-
-### **🔧 Code Quality (15%)**
-- Modular, well-documented architecture
-- Comprehensive error handling
-- Type hints and validation throughout
 
 ---
 
