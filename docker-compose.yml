@@ -14,7 +14,7 @@ services:
       - bbr-net
   api:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: bbr-api
     env_file:
@@ -24,6 +24,34 @@ services:
       - MONGODB_URI=${MONGODB_URI:-mongodb://bbr:bbrpass@mongo:27017/?directConnection=true}
     ports:
       - "8000:8000"
+    networks:
+      - bbr-net
+    depends_on:
+      - mongo
+
+  form-corrector:
+    build:
+      context: ./form-corrector
+      dockerfile: Dockerfile
+    container_name: bbr-form-corrector
+    ports:
+      - "9000:9000"
+    networks:
+      - bbr-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Point frontend to compose-internal URL for form-corrector
+        REACT_APP_FORM_CORRECTOR_URL: /form-corrector
+    container_name: bbr-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+      - form-corrector
     networks:
       - bbr-net
 volumes:
