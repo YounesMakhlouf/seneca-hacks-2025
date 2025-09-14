@@ -81,7 +81,7 @@ export default function LiveCoach() {
   };
 
   return (
-    <div className="pb-24">
+    <div className="px-4 pt-4 pb-24">
       <h1 className="text-xl font-bold mb-2">Live Coach</h1>
       <p className="text-slate-600 mb-4">Streaming frames to backend for feedback. Choose an exercise below.</p>
       <div className="flex gap-2 mb-3">

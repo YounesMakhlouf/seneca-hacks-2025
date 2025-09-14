@@ -62,8 +62,8 @@ export default function FormCorrector() {
   };
 
   return (
-    <div className="pb-24">
-      <h1 className="text-xl font-bold mb-2">Form Corrector</h1>
+    <div className="px-4 pt-4 pb-24">
+      <h1 className="text-xl font-bold mb-1">Form Corrector</h1>
       <p className="text-slate-600 mb-4">Upload a short video and get real-time form feedback overlay.</p>
 
       <label className="block mb-2 text-sm">Exercise</label>
