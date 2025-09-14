@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import Modal from '../components/ui/Modal';
+import Button from '../components/ui/Button';
 
 export default function LiveCoach() {
   const videoRef = useRef(null);
@@ -6,6 +8,7 @@ export default function LiveCoach() {
   const [status, setStatus] = useState('');
   const [exercise, setExercise] = useState('pushup');
   const runningRef = useRef(false);
+  const [showTips, setShowTips] = useState(true);
 
   useEffect(() => {
     let stream;
@@ -94,9 +97,17 @@ export default function LiveCoach() {
       <div className="relative w-full rounded-xl overflow-hidden bg-black">
         <video ref={videoRef} className="w-full" playsInline muted />
         <canvas ref={canvasRef} className="w-full absolute inset-0" />
+        <div className="absolute top-2 right-2 text-[10px] bg-white/80 rounded px-2 py-1 text-slate-700">Calibrating…</div>
       </div>
       <div className="mt-3 text-sm text-slate-600">{status}</div>
       <p className="mt-2 text-xs text-slate-500">Tip: Stand back so your full body is visible and ensure good lighting.</p>
+
+      <Modal open={showTips} onClose={() => setShowTips(false)} title="Posture Tips"
+        footer={<Button onClick={() => setShowTips(false)}>Got it</Button>}>
+        • Keep shoulders back and core engaged.
+        <br />• Align knees over toes for squats.
+        <br />• For pushups, keep a straight line from head to heels.
+      </Modal>
     </div>
   );
 }

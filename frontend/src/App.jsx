@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Preferences from './pages/Preferences';
 import Dashboard from './pages/Dashboard';
 import WorkoutPlan from './pages/WorkoutPlan';
+import Workouts from './pages/Workouts';
 import Music from './pages/Music';
 import WorkoutActive from './pages/WorkoutActive';
 import Meals from './pages/Meals';
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/preferences" element={<Preferences />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/workout/plan" element={<WorkoutPlan />} />
+          <Route path="/workouts" element={<Workouts />} />
           <Route path="/workout/active" element={<WorkoutActive />} />
           <Route path="/music" element={<Music />} />
           <Route path="/meals" element={<Meals />} />

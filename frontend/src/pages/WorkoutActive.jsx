@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ProgressBar from '../components/ui/ProgressBar';
 import Button from '../components/ui/Button';
 import { demoImages } from '../data/demo';
+import { skipWorkoutStep, completeWorkout } from '../lib/api';
 
 export default function WorkoutActive() {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ export default function WorkoutActive() {
   const [minutes, setMinutes] = useState(15);
   const [progress, setProgress] = useState(30);
   const [paused, setPaused] = useState(false);
+  const [step, setStep] = useState(1);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (paused) return;
@@ -36,7 +39,7 @@ export default function WorkoutActive() {
       </div>
 
       <div className="text-center">
-        <h3 className="font-semibold">Exercise: Jumping Jacks</h3>
+        <h3 className="font-semibold">Exercise {step}: Jumping Jacks</h3>
         <p className="text-slate-500 text-sm">Duration: 1 minute</p>
       </div>
 
@@ -44,9 +47,10 @@ export default function WorkoutActive() {
         <img src={demoImages.run} alt="Jumping Jacks" className="w-full h-full object-cover" />
       </div>
 
-      <div className="fixed bottom-20 left-0 right-0 mobile-shell mx-auto px-4 grid grid-cols-2 gap-3">
+      <div className="fixed bottom-20 left-0 right-0 mobile-shell mx-auto px-4 grid grid-cols-3 gap-3">
         <Button variant="outline" onClick={() => setPaused((p) => !p)}>{paused ? 'Resume' : 'Pause'}</Button>
-        <Button onClick={() => navigate('/dashboard')}>End Workout</Button>
+        <Button variant="outline" onClick={async () => { setBusy(true); await skipWorkoutStep(step); setStep((s) => s + 1); setBusy(false); }} disabled={busy}>Skip</Button>
+        <Button onClick={async () => { setBusy(true); await completeWorkout(1); setBusy(false); navigate('/dashboard'); }} disabled={busy}>Complete</Button>
       </div>
     </div>
   );

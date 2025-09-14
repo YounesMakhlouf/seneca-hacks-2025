@@ -22,3 +22,70 @@ export const meals = [
   { id: 1, title: 'Healthy Salad', image: demoImages.meal },
   { id: 2, title: 'Comforting Pasta', image: demoImages.pasta },
 ];
+
+// Detailed mock recipes keyed by meal id
+export const recipeDetails = {
+  1: {
+    id: 1,
+    title: 'Healthy Salad',
+    calories: 480,
+    ingredients: [
+      '2 cups mixed greens',
+      '1/2 avocado, sliced',
+      '1/2 cup cherry tomatoes',
+      '1/4 cup chickpeas (rinsed)',
+      '1 tbsp olive oil',
+      '1 tsp lemon juice',
+      'Salt & pepper to taste'
+    ],
+    steps: [
+      'Rinse and dry greens and tomatoes.',
+      'Combine greens, tomatoes, chickpeas in a bowl.',
+      'Drizzle olive oil and lemon juice; season.',
+      'Top with sliced avocado and serve.'
+    ]
+  },
+  2: {
+    id: 2,
+    title: 'Comforting Pasta',
+    calories: 620,
+    ingredients: [
+      '120g pasta',
+      '1 cup tomato sauce',
+      '1 clove garlic, minced',
+      '1 tbsp olive oil',
+      'Parmesan, to taste',
+      'Salt & pepper'
+    ],
+    steps: [
+      'Cook pasta per package until al dente.',
+      'Saute garlic in olive oil 1 minute; add sauce.',
+      'Simmer 5 minutes; combine with pasta.',
+      'Top with parmesan; season and serve.'
+    ]
+  }
+};
+
+// Detailed mock workout plans keyed by workout id
+export const workoutPlans = {
+  1: {
+    id: 1,
+    title: 'Yoga Flow',
+    steps: [
+      { name: 'Sun Salutation A', minutes: 5 },
+      { name: 'Warrior Sequence', minutes: 8 },
+      { name: 'Balance Poses', minutes: 6 },
+      { name: 'Cool Down', minutes: 6 }
+    ]
+  },
+  2: {
+    id: 2,
+    title: 'Morning Run',
+    steps: [
+      { name: 'Warm-up Walk', minutes: 3 },
+      { name: 'Easy Jog', minutes: 10 },
+      { name: 'Intervals', minutes: 5 },
+      { name: 'Cool Down Walk', minutes: 2 }
+    ]
+  }
+};
