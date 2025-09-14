@@ -562,14 +562,19 @@ def update_bandit(
 ):
     """Update bandit arm based on reward with optional state context."""
     bandit = _get_or_create_bandit(user_id, domain)
-
+    original_r = r
+    # ThompsonSampling (Beta) in mabwiser expects binary rewards unless binarizer specified.
+    # To prevent runtime errors, binarize when r not in {0,1}.
+    if r not in (0, 1):
+        r = 1.0 if r >= 0.6 else 0.0
     if state is not None:
         context = _get_state_context(state)
-        # Train the bandit with context, chosen arm, and reward
         bandit.partial_fit(decisions=[arm_id], rewards=[r], contexts=[context])
     else:
-        # Fallback: train without context (less effective)
         bandit.partial_fit(decisions=[arm_id], rewards=[r])
+    if original_r != r:
+        # Lightweight debug print (avoid heavy logging dependencies here)
+        print(f"📊 Bandit reward binarized {original_r:.3f} -> {r} for {user_id}/{domain}/{arm_id}")
 
 
 def update_preferences(

@@ -29,6 +29,7 @@ from .services import (
     update_bandit,
     update_preferences,
 )
+from .kafka_producer import send_feedback_async
 from .utils import get_today_iso
 
 
@@ -150,53 +151,45 @@ def recommend(req: RecommendRequest):
 
 @app.post("/feedback")
 def submit_feedback(fb: Feedback):
-    """Submit feedback on a recommendation."""
+    """Submit feedback on a recommendation for async processing."""
+    # Validate user exists
     doc = db_get_user(fb.user_id)
     if not doc:
         raise HTTPException(404, "user not found")
-    from .models import UserProfile
+    # Validate item id belongs to the correct catalog
+    if fb.domain == "music" and not any(m.id == fb.item_id for m in MUSIC):
+        raise HTTPException(400, f"invalid music item_id '{fb.item_id}'")
+    if fb.domain == "meal" and not any(m.id == fb.item_id for m in MEALS):
+        raise HTTPException(400, f"invalid meal item_id '{fb.item_id}'")
+    if fb.domain == "workout" and not any(w.id == fb.item_id for w in WORKOUTS):
+        raise HTTPException(400, f"invalid workout item_id '{fb.item_id}'")
 
-    user = UserProfile(**doc)
+    # Convert feedback to dict for Kafka message
+    feedback_data = {
+        "user_id": fb.user_id,
+        "domain": fb.domain,
+        "item_id": fb.item_id,
+        "thumbs": fb.thumbs,
+        "completed": fb.completed,
+        "hr_zone_frac": fb.hr_zone_frac,
+        "skipped_early": fb.skipped_early,
+        "ate": fb.ate,
+        "protein_gap_closed_norm": fb.protein_gap_closed_norm,
+        "rpe": fb.rpe
+    }
 
-    # Infer arm by a simple mapping: pick the arm whose filter would have included the item
-    # For hackathon speed, assume last chosen arm per domain is the one to update (not tracked here).
-    # Better: return arm from /recommend and send it back in feedback. For now, do this:
-    # Get current state to make contextual decision
-    today = get_today_iso(None)
-    sleep_docs = get_recent_entries("sleep", fb.user_id, limit=7)
-    nut_docs = get_recent_entries("nutrition", fb.user_id, limit=3)
-    act_docs = get_recent_entries("activity", fb.user_id, limit=7)
-    from .models import ActivityEntry, NutritionEntry, SleepEntry
+    # Send feedback message to Kafka for async processing
+    success = send_feedback_async(feedback_data)
 
-    sleep_entries = [SleepEntry(**d) for d in sleep_docs]
-    todays_nutrition = None
-    if nut_docs:
-        for d in reversed(nut_docs):
-            if d["date"] <= today:
-                todays_nutrition = NutritionEntry(**d)
-                break
-    activity_entries = [ActivityEntry(**d) for d in act_docs]
-    state = compute_state_entries(
-        user, sleep_entries, todays_nutrition, activity_entries
-    )
-    arm_to_update = thompson_sample_contextual(fb.user_id, fb.domain, state)
-    r = reward_from_feedback(fb.domain, fb)
-    update_bandit(fb.user_id, fb.domain, arm_to_update, r, state)
+    if not success:
+        raise HTTPException(500, "Failed to queue feedback for processing")
 
-    # Update prefs
-    item_tags = []
-    if fb.domain == "music":
-        track = next((m for m in MUSIC if m.id == fb.item_id), None)
-        item_tags = track.genres if track else []
-    elif fb.domain == "meal":
-        meal = next((m for m in MEALS if m.id == fb.item_id), None)
-        item_tags = meal.cuisine_tags if meal else []
-    else:
-        workout = next((w for w in WORKOUTS if w.id == fb.item_id), None)
-        item_tags = workout.focus_tags if workout else []
-
-    update_preferences(user, fb.domain, item_tags, fb.thumbs)
-    return {"ok": True, "reward": r, "arm_updated": arm_to_update}
+    return {
+        "ok": True,
+        "message": "Feedback queued for async processing",
+        "user_id": fb.user_id,
+        "domain": fb.domain
+    }
 
 
 @app.get("/users/{user_id}")
