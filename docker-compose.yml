@@ -14,11 +14,11 @@ services:
       - bbr-net
   api:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: bbr-api
     env_file:
-      - .env
+      -  ./backend/.env
     environment:
       - USE_MONGO=${USE_MONGO:-1}
       - MONGODB_URI=${MONGODB_URI:-mongodb://bbr:bbrpass@mongo:27017/?directConnection=true}

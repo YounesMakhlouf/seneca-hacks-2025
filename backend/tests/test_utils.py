@@ -104,7 +104,7 @@ class TestHeartRateCalculations:
         """Test target_bpm_from_state with high readiness and low strain."""
         state = {"Readiness": 70, "Strain": 50}
         result = target_bpm_from_state(sample_user, state)
-        
+
         # Should use 0.65 * hrmax for high readiness and low strain
         hrmax = compute_hr_max(sample_user)
         target_hr = 0.65 * hrmax
@@ -115,7 +115,7 @@ class TestHeartRateCalculations:
         """Test target_bpm_from_state with low readiness."""
         state = {"Readiness": 50, "Strain": 40}
         result = target_bpm_from_state(sample_user, state)
-        
+
         # Should use 0.55 * hrmax for low readiness
         hrmax = compute_hr_max(sample_user)
         target_hr = 0.55 * hrmax
@@ -183,7 +183,7 @@ class TestPreferenceHelpers:
         tag_weights = {"pop": 0.8, "rock": 0.6, "electronic": 0.9}
         item_tags = ["pop", "electronic"]
         result = cosine_pref_fit(tag_weights, item_tags)
-        
+
         # Should be average of 0.8 and 0.9 = 0.85
         expected = (0.8 + 0.9) / 2
         assert abs(result - expected) < 1e-6
@@ -193,7 +193,7 @@ class TestPreferenceHelpers:
         tag_weights = {"pop": 0.8, "rock": 0.6}
         item_tags = ["pop", "electronic", "jazz"]
         result = cosine_pref_fit(tag_weights, item_tags)
-        
+
         # Should be average of 0.8, 0.0, 0.0 = 0.8/3
         expected = 0.8 / 3
         assert abs(result - expected) < 1e-6

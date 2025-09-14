@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 
 from body_behavior_recommender.app import app
 from body_behavior_recommender.models import (
-    RecommendRequest, Feedback, UserProfile, SleepEntry, 
+    RecommendRequest, Feedback, UserProfile, SleepEntry,
     NutritionEntry, ActivityEntry
 )
 
@@ -97,7 +97,7 @@ class TestBasicEndpoints:
     def test_root_endpoint(self, client):
         """Test root endpoint returns API information."""
         response = client.get("/")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "name" in data
@@ -108,7 +108,7 @@ class TestBasicEndpoints:
     def test_health_check(self, client):
         """Test health check endpoint."""
         response = client.get("/health")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
@@ -119,19 +119,19 @@ class TestStateEndpoint:
 
     @patch('body_behavior_recommender.endpoints.db_get_user')
     @patch('body_behavior_recommender.endpoints.get_recent_entries')
-    def test_get_state_success(self, mock_get_entries, mock_get_user, client, 
-                              mock_user_doc, mock_sleep_docs, mock_nutrition_docs, 
+    def test_get_state_success(self, mock_get_entries, mock_get_user, client,
+                              mock_user_doc, mock_sleep_docs, mock_nutrition_docs,
                               mock_activity_docs):
         """Test successful state retrieval."""
         mock_get_user.return_value = mock_user_doc
         mock_get_entries.side_effect = [
             mock_sleep_docs,    # sleep entries
-            mock_nutrition_docs, # nutrition entries  
+            mock_nutrition_docs, # nutrition entries
             mock_activity_docs   # activity entries
         ]
-        
+
         response = client.get("/state?user_id=test_user_1")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "Readiness" in data
@@ -143,9 +143,9 @@ class TestStateEndpoint:
     def test_get_state_user_not_found(self, mock_get_user, client):
         """Test state endpoint with non-existent user."""
         mock_get_user.return_value = None
-        
+
         response = client.get("/state?user_id=nonexistent")
-        
+
         assert response.status_code == 404
         assert "user not found" in response.json()["detail"]
 
@@ -172,14 +172,14 @@ class TestRecommendEndpoint:
         mock_thompson.return_value = "high_energy"
         mock_filter.return_value = [sample_music_track]
         mock_rank.return_value = [(sample_music_track, 0.85)]
-        
+
         request_data = {
             "user_id": "test_user_1",
             "intent": "music"
         }
-        
+
         response = client.post("/recommend", json=request_data)
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["domain"] == "music"
@@ -208,14 +208,14 @@ class TestRecommendEndpoint:
         mock_thompson.return_value = "high_protein"
         mock_filter.return_value = [sample_meal_template]
         mock_rank.return_value = [(sample_meal_template, 0.90)]
-        
+
         request_data = {
             "user_id": "test_user_1",
             "intent": "meal"
         }
-        
+
         response = client.post("/recommend", json=request_data)
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["domain"] == "meal"
@@ -240,14 +240,14 @@ class TestRecommendEndpoint:
         mock_thompson.return_value = "strength_focus"
         mock_filter.return_value = [sample_workout_template]
         mock_rank.return_value = [(sample_workout_template, 0.88)]
-        
+
         request_data = {
             "user_id": "test_user_1",
             "intent": "workout"
         }
-        
+
         response = client.post("/recommend", json=request_data)
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["domain"] == "workout"
@@ -257,14 +257,14 @@ class TestRecommendEndpoint:
     def test_recommend_user_not_found(self, mock_get_user, client):
         """Test recommendation with non-existent user."""
         mock_get_user.return_value = None
-        
+
         request_data = {
             "user_id": "nonexistent",
             "intent": "music"
         }
-        
+
         response = client.post("/recommend", json=request_data)
-        
+
         assert response.status_code == 404
         assert "user not found" in response.json()["detail"]
 
@@ -287,21 +287,21 @@ class TestRecommendEndpoint:
         mock_thompson.return_value = "high_energy"
         mock_filter.return_value = []
         mock_rank.return_value = []
-        
+
         request_data = {
             "user_id": "test_user_1",
             "intent": "music"
         }
-        
+
         response = client.post("/recommend", json=request_data)
-        
+
         assert response.status_code == 400
         assert "no music candidates" in response.json()["detail"]
 
     @patch('body_behavior_recommender.endpoints.db_get_user')
     @patch('body_behavior_recommender.endpoints.get_recent_entries')
     @patch('body_behavior_recommender.endpoints.choose_domain')
-    def test_recommend_auto_domain_selection(self, mock_choose, mock_get_entries, 
+    def test_recommend_auto_domain_selection(self, mock_choose, mock_get_entries,
                                             mock_get_user, client, mock_user_doc,
                                             mock_sleep_docs, mock_nutrition_docs,
                                             mock_activity_docs):
@@ -313,19 +313,19 @@ class TestRecommendEndpoint:
             mock_activity_docs
         ]
         mock_choose.return_value = "meal"
-        
+
         request_data = {
             "user_id": "test_user_1"
             # No intent specified
         }
-        
+
         with patch('body_behavior_recommender.endpoints.thompson_sample_contextual'), \
              patch('body_behavior_recommender.endpoints.filter_meal_candidates'), \
-             patch('body_behavior_recommender.endpoints.rank_meals', 
+             patch('body_behavior_recommender.endpoints.rank_meals',
                    return_value=[(MagicMock(), 0.8)]):
-            
+
             response = client.post("/recommend", json=request_data)
-            
+
             # Should call choose_domain to determine the domain
             mock_choose.assert_called_once()
 
@@ -353,7 +353,7 @@ class TestFeedbackEndpoint:
         ]
         mock_thompson.return_value = "high_energy"
         mock_reward.return_value = 0.8
-        
+
         feedback_data = {
             "user_id": "test_user_1",
             "domain": "music",
@@ -363,13 +363,13 @@ class TestFeedbackEndpoint:
             "hr_zone_frac": 0.7,
             "skipped_early": 0
         }
-        
+
         response = client.post("/feedback", json=feedback_data)
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "feedback recorded"
-        
+
         # Verify the reward calculation and bandit update were called
         mock_reward.assert_called_once()
         mock_update_bandit.assert_called_once()
@@ -379,16 +379,16 @@ class TestFeedbackEndpoint:
     def test_submit_feedback_user_not_found(self, mock_get_user, client):
         """Test feedback submission with non-existent user."""
         mock_get_user.return_value = None
-        
+
         feedback_data = {
             "user_id": "nonexistent",
             "domain": "music",
             "item_id": "track_1",
             "thumbs": 1
         }
-        
+
         response = client.post("/feedback", json=feedback_data)
-        
+
         assert response.status_code == 404
         assert "user not found" in response.json()["detail"]
 
@@ -401,9 +401,9 @@ class TestCatalogEndpoints:
         """Test music catalog endpoint."""
         mock_music.__len__.return_value = 1
         mock_music.__getitem__.return_value = [sample_music_track]
-        
+
         response = client.get("/catalog/music")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "count" in data
@@ -413,9 +413,9 @@ class TestCatalogEndpoints:
         """Test meals catalog endpoint."""
         mock_meals.__len__.return_value = 1
         mock_meals.__getitem__.return_value = [sample_meal_template]
-        
+
         response = client.get("/catalog/meals")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "count" in data
@@ -425,9 +425,9 @@ class TestCatalogEndpoints:
         """Test workouts catalog endpoint."""
         mock_workouts.__len__.return_value = 1
         mock_workouts.__getitem__.return_value = [sample_workout_template]
-        
+
         response = client.get("/catalog/workouts")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "count" in data
@@ -440,9 +440,9 @@ class TestUserEndpoints:
     def test_get_user_success(self, mock_get_user, client, mock_user_doc):
         """Test successful user retrieval."""
         mock_get_user.return_value = mock_user_doc
-        
+
         response = client.get("/users/test_user_1")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["user_id"] == "test_user_1"
@@ -452,9 +452,9 @@ class TestUserEndpoints:
     def test_get_user_not_found(self, mock_get_user, client):
         """Test user retrieval with non-existent user."""
         mock_get_user.return_value = None
-        
+
         response = client.get("/users/nonexistent")
-        
+
         assert response.status_code == 404
         assert "user not found" in response.json()["detail"]
 
@@ -468,9 +468,9 @@ class TestValidationErrors:
             "user_id": "",  # Empty user_id should be invalid
             "intent": "invalid_intent"  # Invalid intent
         }
-        
+
         response = client.post("/recommend", json=invalid_data)
-        
+
         # Should return validation error
         assert response.status_code == 422
 
@@ -482,9 +482,9 @@ class TestValidationErrors:
             "item_id": "",  # Empty item_id
             "thumbs": 5  # Invalid thumbs value (should be -1, 0, or 1)
         }
-        
+
         response = client.post("/feedback", json=invalid_data)
-        
+
         # Should return validation error
         assert response.status_code == 422
 
@@ -493,7 +493,7 @@ class TestValidationErrors:
         # Recommend without user_id
         response = client.post("/recommend", json={})
         assert response.status_code == 422
-        
+
         # Feedback without required fields
         response = client.post("/feedback", json={"user_id": "test"})
         assert response.status_code == 422

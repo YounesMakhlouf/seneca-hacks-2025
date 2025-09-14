@@ -3,7 +3,7 @@
 import pytest
 from datetime import datetime
 from body_behavior_recommender.models import (
-    UserProfile, SleepEntry, NutritionEntry, ActivityEntry, 
+    UserProfile, SleepEntry, NutritionEntry, ActivityEntry,
     MusicTrack, MealTemplate, WorkoutTemplate
 )
 
