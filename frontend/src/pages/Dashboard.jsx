@@ -5,7 +5,7 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
 import { playlists, meals, workouts, recipeDetails } from '../data/demo';
-import { getTodaySuggestions, getRecipeDetail, getWorkoutPlan, selectMeal, startWorkout } from '../lib/api';
+import { getTodaySuggestions, getRecipeDetail, getWorkoutPlan, selectMeal, startWorkout, getDailyStats, getTrainingCalendar, getGoals, getTodayMeals } from '../lib/api';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -14,6 +14,15 @@ export default function Dashboard() {
   const [recipe, setRecipe] = useState(null);
   const [plan, setPlan] = useState(null);
   const [savingMeal, setSavingMeal] = useState(false);
+  const [cal, setCal] = useState(null);
+  const [calLoading, setCalLoading] = useState(true);
+  const [calendar, setCalendar] = useState([]);
+  const [calDaysLoading, setCalDaysLoading] = useState(true);
+  const [goals, setGoals] = useState([]);
+  const [goalsLoading, setGoalsLoading] = useState(true);
+  const [todayMeals, setTodayMeals] = useState([]);
+  const [mealsLoading, setMealsLoading] = useState(true);
+  const [selectingId, setSelectingId] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -21,6 +30,18 @@ export default function Dashboard() {
       const s = await getTodaySuggestions();
       setSuggest(s);
       setLoading(false);
+      setCalLoading(true);
+      setCal(await getDailyStats());
+      setCalLoading(false);
+      setCalDaysLoading(true);
+      setCalendar(await getTrainingCalendar(14));
+      setCalDaysLoading(false);
+      setGoalsLoading(true);
+      setGoals(await getGoals());
+      setGoalsLoading(false);
+      setMealsLoading(true);
+      setTodayMeals(await getTodayMeals(5));
+      setMealsLoading(false);
     })();
   }, []);
 
@@ -54,6 +75,70 @@ export default function Dashboard() {
 
   return (
     <div className="px-4 pt-4 pb-24 space-y-4">
+      <section>
+        <h3 className="font-bold text-lg mb-2">Today</h3>
+        {calLoading || !cal ? (
+          <div className="flex items-center gap-2 text-slate-600"><Spinner /> <span>Calculating calories…</span></div>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            <Card className="p-3 text-center">
+              <div className="text-xs text-slate-500">Consumed</div>
+              <div className="text-xl font-extrabold">{cal.consumed}</div>
+              <div className="text-xs text-slate-500">kcal</div>
+            </Card>
+            <Card className="p-3 text-center">
+              <div className="text-xs text-slate-500">Target</div>
+              <div className="text-xl font-extrabold">{cal.target}</div>
+              <div className="text-xs text-slate-500">kcal</div>
+            </Card>
+            <Card className="p-3 text-center">
+              <div className="text-xs text-slate-500">Left</div>
+              <div className="text-xl font-extrabold text-primary">{cal.remaining}</div>
+              <div className="text-xs text-slate-500">kcal</div>
+            </Card>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h3 className="font-bold text-lg mb-2">Meals for Today</h3>
+        {mealsLoading ? (
+          <div className="flex items-center gap-2 text-slate-600"><Spinner /> <span>Preparing your meal picks…</span></div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {todayMeals.map((m) => (
+              <Card key={m.id}>
+                <img src={m.image} alt="" className="w-full h-28 object-cover rounded-t-xl" />
+                <div className="p-3">
+                  <div className="font-semibold">{m.title}</div>
+                  <div className="text-xs text-slate-500">{m.calories} kcal</div>
+                  <Button className="mt-2" onClick={async ()=>{ setSelectingId(m.id); await selectMeal(m.id); setSelectingId(null); }}>
+                    {selectingId === m.id ? 'Selecting…' : 'Select'}
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h3 className="font-bold text-lg mb-2">Training calendar</h3>
+        {calDaysLoading ? (
+          <div className="flex items-center gap-2 text-slate-600"><Spinner /> <span>Loading days…</span></div>
+        ) : (
+          <Card className="p-3">
+            <div className="grid grid-cols-7 gap-2">
+              {calendar.map((d) => (
+                <div key={d.date} className={`h-8 rounded-lg text-[10px] flex items-center justify-center border ${d.trained ? 'bg-primary/15 text-primary border-primary/30' : 'bg-white text-slate-500 border-slate-200'}`} title={d.date}>
+                  {new Date(d.date).getDate()}
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 text-xs text-slate-500">Green = trained day</div>
+          </Card>
+        )}
+      </section>
       <section>
         <h3 className="font-bold text-lg mb-2">Today’s Suggestions</h3>
         {loading || !suggest ? (
@@ -107,6 +192,24 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
+      </section>
+
+      <section>
+        <h3 className="font-bold text-lg mb-2">Goals</h3>
+        {goalsLoading ? (
+          <div className="flex items-center gap-2 text-slate-600"><Spinner /> <span>Checking goals…</span></div>
+        ) : (
+          <Card className="p-3">
+            <ul className="space-y-2">
+              {goals.map((g) => (
+                <li key={g.id} className="flex items-center gap-2">
+                  <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${g.hit ? 'bg-primary text-white' : 'bg-slate-200 text-slate-600'}`}>{g.hit ? '✓' : '•'}</span>
+                  <span className={`${g.hit ? 'line-through text-slate-500' : ''}`}>{g.name}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </section>
 
       <section>

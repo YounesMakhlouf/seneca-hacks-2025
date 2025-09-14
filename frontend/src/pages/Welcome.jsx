@@ -9,7 +9,7 @@ export default function Welcome() {
       <div className="w-full aspect-[3/2] rounded-2xl overflow-hidden shadow-card">
         <img src={demoImages.welcome} alt="Listening" className="w-full h-full object-cover" />
       </div>
-      <h1 className="text-2xl font-extrabold mt-6">Welcome to ZenFlow</h1>
+  <h1 className="text-2xl font-extrabold mt-6">Welcome to FitMix</h1>
       <p className="text-slate-600 mt-3">
         Discover personalized music, meal, and workout recommendations tailored to your mood and preferences. Let's
         begin your journey to a balanced lifestyle.

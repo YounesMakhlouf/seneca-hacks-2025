@@ -2,9 +2,14 @@ export const demoImages = {
   welcome: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=800&q=80&auto=format&fit=crop',
   meal: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80&auto=format&fit=crop',
   pasta: 'https://images.unsplash.com/photo-1525755662778-989d0524087e?w=800&q=80&auto=format&fit=crop',
+  bowl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT556q-kVidjVjl-Hk-HrhG_4OQAJ-_vUytlg&s',
+  smoothie: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQV5dKjzCBSZeYQF5btsryWbEMEtowMm6un7A&s',
+  wrap: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80&auto=format&fit=crop',
+  parfait: 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=800&q=80&auto=format&fit=crop',
   yoga: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80&auto=format&fit=crop',
-  run: 'https://images.unsplash.com/photo-1517963628607-235ccdd5476e?w=800&q=80&auto=format&fit=crop',
-  music1: 'https://images.unsplash.com/photo-1483412033650-1015ddeb83d4?w=800&q=80&auto=format&fit=crop',
+  run: 'https://images.stockcake.com/public/1/4/6/1465ef4d-3149-49a2-a8dc-21e14163366b_large/morning-jogging-routine-stockcake.jpg',
+  strength: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80&auto=format&fit=crop',
+  music1: 'https://i.ytimg.com/vi/IYLDF2-PvFg/maxresdefault.jpg',
   music2: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80&auto=format&fit=crop'
 };
 
@@ -14,13 +19,18 @@ export const playlists = [
 ];
 
 export const workouts = [
-  { id: 1, title: 'Yoga Flow', duration: 25, image: demoImages.yoga },
-  { id: 2, title: 'Morning Run', duration: 20, image: demoImages.run },
+  { id: 1, title: 'Yoga Flow', duration: 25, image: demoImages.yoga, category: 'mobility' },
+  { id: 2, title: 'Morning Run', duration: 20, image: demoImages.run, category: 'cardio' },
+  { id: 3, title: 'Strength Circuit', duration: 18, image: demoImages.strength, category: 'strength' },
 ];
 
 export const meals = [
-  { id: 1, title: 'Healthy Salad', image: demoImages.meal },
-  { id: 2, title: 'Comforting Pasta', image: demoImages.pasta },
+  { id: 1, title: 'Healthy Salad', image: demoImages.meal, category: 'lunch' },
+  { id: 2, title: 'Comforting Pasta', image: demoImages.pasta, category: 'dinner' },
+  { id: 3, title: 'Protein Bowl', image: demoImages.bowl, category: 'lunch' },
+  { id: 4, title: 'Berry Smoothie', image: demoImages.smoothie, category: 'breakfast' },
+  { id: 5, title: 'Chicken Wrap', image: demoImages.wrap, category: 'dinner' },
+  { id: 6, title: 'Yogurt Parfait', image: demoImages.parfait, category: 'snack' },
 ];
 
 // Detailed mock recipes keyed by meal id
@@ -86,6 +96,17 @@ export const workoutPlans = {
       { name: 'Easy Jog', minutes: 10 },
       { name: 'Intervals', minutes: 5 },
       { name: 'Cool Down Walk', minutes: 2 }
+    ]
+  },
+  3: {
+    id: 3,
+    title: 'Strength Circuit',
+    steps: [
+      { name: 'Bodyweight Squats', minutes: 4 },
+      { name: 'Push-ups', minutes: 3 },
+      { name: 'Lunges', minutes: 4 },
+      { name: 'Plank', minutes: 3 },
+      { name: 'Stretch', minutes: 4 }
     ]
   }
 };
