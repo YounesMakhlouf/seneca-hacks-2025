@@ -16,7 +16,7 @@ from .utils import (
 )
 
 # Static catalogs for recommendations
-from .app import MUSIC, MEALS, WORKOUTS, ARMS
+from .app import MUSIC, MEALS, WORKOUTS, ARMS, SLEEP, NUTRITION, ACTIVITY, USER_BANDITS
 
 def compute_state_entries(user: UserProfile,
                           sleep_entries: List[SleepEntry],
@@ -420,51 +420,3 @@ def choose_domain(intent: Optional[str], state: Dict[str,int], hours_since_last_
     return "music"
 
 
-def reward_from_feedback(domain: str, fb: Feedback) -> float:
-    """Calculate reward from user feedback."""
-    if domain == "music":
-        return clamp01(0.4*(fb.hr_zone_frac or 0) + 0.3*(1 if fb.thumbs>0 else 0) + 0.2*(fb.completed or 0) + 0.1*(0 if (fb.skipped_early or 0) else 1))
-    if domain == "meal":
-        return clamp01(0.5*(fb.ate or 0) + 0.3*(fb.protein_gap_closed_norm or 0) + 0.2*(1 if fb.thumbs>0 else 0))
-    if domain == "workout":
-        return clamp01(0.4*(fb.completed or 0) + 0.3*(fb.hr_zone_frac or 0) + 0.3*(1 - min(1.0, abs((fb.rpe or 0) - 5)/5)))
-    return 0.0
-
-
-def update_bandit(user_id: str, domain: str, arm_id: str, r: float, state: Optional[Dict[str, int]] = None):
-    """Update bandit arm based on reward with optional state context."""
-    bandit = _get_or_create_bandit(user_id, domain)
-
-    if state is not None:
-        context = _get_state_context(state)
-        # Train the bandit with context, chosen arm, and reward
-        bandit.partial_fit(
-            decisions=[arm_id],
-            rewards=[r],
-            contexts=[context]
-        )
-    else:
-        # Fallback: train without context (less effective)
-        bandit.partial_fit(
-            decisions=[arm_id],
-            rewards=[r]
-        )
-
-
-def update_preferences(user: UserProfile, domain: str, item_tags: List[str], thumbs: int):
-    """Update user preferences based on feedback."""
-    if thumbs == 0 or not item_tags:
-        return
-    lr_fast = 0.3
-    if domain == "music":
-        for t in item_tags:
-            w = user.pref_music_genres.get(t, 0.0)
-            user.pref_music_genres[t] = float(np.clip(w + (lr_fast if thumbs>0 else -lr_fast), 0.0, 1.0))
-    elif domain == "meal":
-        for t in item_tags:
-            w = user.pref_meal_cuisines.get(t, 0.0)
-            user.pref_meal_cuisines[t] = float(np.clip(w + (lr_fast if thumbs>0 else -lr_fast), 0.0, 1.0))
-    elif domain == "workout":
-        for t in item_tags:
-            w = user.pref_workout_focus.get(t, 0.0)
-            user.pref_workout_focus[t] = float(np.clip(w + (lr_fast if thumbs>0 else -lr_fast), 0.0, 1.0))
