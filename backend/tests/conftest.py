@@ -1,11 +1,17 @@
 """Test configuration and fixtures."""
 
 import pytest
-from datetime import datetime
+
 from body_behavior_recommender.models import (
-    UserProfile, SleepEntry, NutritionEntry, ActivityEntry,
-    MusicTrack, MealTemplate, WorkoutTemplate
+    ActivityEntry,
+    MealTemplate,
+    MusicTrack,
+    NutritionEntry,
+    SleepEntry,
+    UserProfile,
+    WorkoutTemplate,
 )
+
 
 @pytest.fixture
 def sample_user():
@@ -24,8 +30,9 @@ def sample_user():
         pref_workout_focus={"strength": 0.8, "cardio": 0.6},
         allergens=["nuts"],
         diet_flags=["vegetarian"],
-        equipment=["dumbbells", "resistance_bands"]
+        equipment=["dumbbells", "resistance_bands"],
     )
+
 
 @pytest.fixture
 def sample_sleep_entry():
@@ -39,8 +46,9 @@ def sample_sleep_entry():
         light_sleep_minutes=270,
         sleep_efficiency=85.0,
         bedtime="22:30",
-        wake_time="06:30"
+        wake_time="06:30",
     )
+
 
 @pytest.fixture
 def sample_nutrition_entry():
@@ -54,8 +62,9 @@ def sample_nutrition_entry():
         fat_g=80.0,
         fiber_g=25.0,
         sugar_g=50.0,
-        sodium_mg=2000.0
+        sodium_mg=2000.0,
     )
+
 
 @pytest.fixture
 def sample_activity_entry():
@@ -68,8 +77,9 @@ def sample_activity_entry():
         active_minutes=45,
         distance_km=6.0,
         heart_rate_avg=140,
-        workout_duration=30
+        workout_duration=30,
     )
+
 
 @pytest.fixture
 def sample_music_track():
@@ -81,8 +91,9 @@ def sample_music_track():
         bpm=120,
         energy=0.7,
         valence=0.8,
-        genres=["pop", "electronic"]
+        genres=["pop", "electronic"],
     )
+
 
 @pytest.fixture
 def sample_meal_template():
@@ -99,8 +110,9 @@ def sample_meal_template():
         sugar_g=5.0,
         sodium_mg=600.0,
         allergens=[],
-        diet_ok=["vegetarian", "omnivore"]
+        diet_ok=["vegetarian", "omnivore"],
     )
+
 
 @pytest.fixture
 def sample_workout_template():
@@ -112,14 +124,11 @@ def sample_workout_template():
         impact="moderate",
         equipment_needed=["dumbbells"],
         duration_min=30,
-        focus_tags=["strength", "beginner"]
+        focus_tags=["strength", "beginner"],
     )
+
 
 @pytest.fixture
 def sample_state():
     """Sample user state for testing."""
-    return {
-        "Readiness": 75,
-        "Fuel": 60,
-        "Strain": 45
-    }
+    return {"Readiness": 75, "Fuel": 60, "Strain": 45}
