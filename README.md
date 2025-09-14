@@ -9,9 +9,57 @@
 
 ---
 
+## 🚀 How to Run the App (Docker)
+
+Run everything with a single command:
+
+```bash
+docker compose up --build
+```
+
+Once started, access the services here:
+
+- Frontend (FitMix UI): http://localhost:3000
+- API (FastAPI): http://localhost:8000 (health: http://localhost:8000/health)
+- Form Corrector (FastAPI + OpenCV): http://localhost:9000 (health: http://localhost:9000/health)
+- MongoDB: localhost:27017 (inside Compose network: `mongo:27017`)
+
+Notes
+- The frontend proxies requests to the form-corrector via `/form-corrector/*` (handled by Nginx in the frontend container).
+- First build can take a few minutes (MediaPipe/OpenCV). Subsequent starts are much faster.
+
+---
+
 ## 🚀 Overview
 
 **Body→Behavior Recommender** is an adaptive health assistant that transforms daily health signals (sleep, nutrition, activity) into actionable, personalized suggestions—music tracks, meals/snacks, and micro-workouts. Built with **FastAPI + MongoDB + Docker**, it ingests large datasets into a persistent database and delivers intelligent recommendations using bandit learning algorithms.
+
+---
+
+## 📈 Scalability
+
+This stack is designed for straightforward scale-up and scale-out:
+
+- API (FastAPI)
+  - Stateless services → scale horizontally behind a load balancer.
+  - Connection pooling to MongoDB; indexes for hot queries (user_id + time keys).
+  - Heavy computations run at startup or in background tasks, keeping per-request latency low.
+
+- MongoDB
+  - Indexing strategy focused on user_id + timestamps; aggregation pipelines for efficient summaries.
+  - Can upgrade to a managed Atlas cluster with replica sets and sharding as data grows.
+
+- Frontend
+  - Built assets are static and CDN-friendly; can be served by any edge/CDN.
+  - Nginx reverse-proxy routes `/form-corrector` to the internal service in Compose/Cluster.
+
+- Form Corrector (Computer Vision)
+  - CPU-first OpenCV/MediaPipe; isolate as a dedicated microservice.
+  - Scale replicas based on request rate; optional GPU-accelerated path for heavier models.
+
+- From Compose to Kubernetes
+  - One-to-one mapping of services → Deployments/Services.
+  - Add Ingress for public routing, HPA for autoscaling, persistent volumes for MongoDB.
 
 ---
 
