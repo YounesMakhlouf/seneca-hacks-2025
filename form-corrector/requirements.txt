@@ -1,0 +1,4 @@
+opencv-python>=4.7.0
+mediapipe>=0.10.0
+numpy>=1.24.0
+pytube>=15.0.0   # Optional, if you want to download YouTube videos

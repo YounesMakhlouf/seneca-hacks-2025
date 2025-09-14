@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global tweaks for mobile-style viewport */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* Mobile frame helper for desktop preview */
+.mobile-shell {
+  max-width: 420px; /* portrait phone width */
+  margin: 0 auto;
+}
+
+/* Hide scrollbars but allow scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
