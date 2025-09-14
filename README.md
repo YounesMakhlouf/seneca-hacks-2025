@@ -39,16 +39,10 @@
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   FastAPI App   │    │   MongoDB       │    │   Docker        │
-│                 │    │                 │    │                 │
-│ • endpoints.py  │◄──►│ • Users         │    │ • FastAPI       │
-│ • services.py   │    │ • Sleep         │    │ • MongoDB       │
-│ • models.py     │    │ • Activities    │    │ • Networking    │
-│ • utils.py      │    │ • Measurements  │    │ • Volumes       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+![Architecture](image.png)
+
+#### Detailled architecture
+![Detailled architecture](image-1.png)
 
 ### **Core Components:**
 - **Entry Point:** `main.py` + `src/body_behavior_recommender/app.py`
