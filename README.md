@@ -74,17 +74,20 @@ This stack is designed for straightforward scale-up and scale-out:
 ## 🏆 Why It Stands Out
 
 ### 🎯 **Innovation & Intelligence**
+
 - **Multi-Domain Adaptation:** Recommends across music, nutrition, and activity based on real-time health state
 - **Bandit Learning:** Uses Thompson Sampling + kNN context for evolving, personalized choices
 - **Real-Time State Computation:** Instantly computes Readiness, Fuel, and Strain from user data
 
 ### 🚀 **Scalability & Performance**
+
 - **MongoDB Backend:** Persistent storage with optimized indexing for large datasets
 - **Docker Deployment:** Containerized for consistent deployment across environments
 - **Efficient Data Handling:** Bulk ingestion with proper indexing strategies
 - **Fast Startup:** < 10 seconds with database caching
 
 ### 📊 **Data Scale**
+
 - **Users:** 50,000+
 - **Sleep Records:** 500,000+
 - **Activities:** 1,000,000+
@@ -97,10 +100,12 @@ This stack is designed for straightforward scale-up and scale-out:
 
 ![Architecture](static/high-level.png)
 
-#### Detailled architecture
-![Detailled architecture](static/detailed.png)
+#### Detailed architecture
+
+![Detailed architecture](static/detailed.png)
 
 ### **Core Components:**
+
 - **Entry Point:** `main.py` + `src/body_behavior_recommender/app.py`
 - **Database Layer:** `mongo_wrapper.py` + `db.py` for connection management
 - **Data Ingestion:** `data_loader.py` with bulk MongoDB operations
@@ -126,16 +131,19 @@ This stack is designed for straightforward scale-up and scale-out:
 ## 🧠 Intelligent Recommendation Logic
 
 ### **State Computation:**
+
 - **🛌 Readiness:** Sleep quality + bedtime consistency + recovery metrics
 - **🍎 Fuel:** Protein/fiber adequacy - sugar/sodium penalties
 - **💪 Strain:** Steps z-score + heart rate + active minutes
 
 ### **Ranking Algorithm:**
+
 ```
 Score = 0.35×GoalFit + 0.30×StateFit + 0.25×PrefFit + 0.10×Novelty - Penalties
 ```
 
 ### **Bandit Learning:**
+
 - **Algorithm:** Thompson Sampling with kNN context
 - **Context:** Normalized state vectors per (user_id, domain)
 - **Adaptation:** Real-time learning from user feedback
@@ -144,20 +152,21 @@ Score = 0.35×GoalFit + 0.30×StateFit + 0.25×PrefFit + 0.10×Novelty - Penalti
 
 ## 🛠️ API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | User health summary and metrics |
-| `GET` | `/state` | Current computed state (Readiness/Fuel/Strain) |
-| `POST` | `/recommend` | Get personalized recommendation |
-| `POST` | `/feedback` | Submit feedback for learning |
-| `GET` | `/users/{user_id}` | User profile and preferences |
-| `GET` | `/stats` | System statistics and data insights |
+| Method | Endpoint           | Description                                    |
+| ------ | ------------------ | ---------------------------------------------- |
+| `GET`  | `/health`          | User health summary and metrics                |
+| `GET`  | `/state`           | Current computed state (Readiness/Fuel/Strain) |
+| `POST` | `/recommend`       | Get personalized recommendation                |
+| `POST` | `/feedback`        | Submit feedback for learning                   |
+| `GET`  | `/users/{user_id}` | User profile and preferences                   |
+| `GET`  | `/stats`           | System statistics and data insights            |
 
 ---
 
 ## 🐳 Quick Start with Docker
 
 ### **Production Deployment:**
+
 ```bash
 # Clone and start the entire stack
 git clone https://github.com/YounesMakhlouf/seneca-hacks-2025.git
@@ -169,6 +178,7 @@ docker-compose up --build
 ```
 
 ### **Local Development:**
+
 ```bash
 # Start MongoDB only
 docker-compose up mongodb
@@ -177,18 +187,19 @@ docker-compose up mongodb
 uv run uvicorn main:app --reload
 ```
 
-
 ---
 
 ## 📊 Database Schema & Performance
 
 ### **MongoDB Collections:**
+
 - **Users:** Indexed by `user_id`, demographics, and preferences
 - **Sleep:** Indexed by `user_id` + `date` for time-series queries
 - **Activities:** Indexed by `user_id` + `timestamp` with activity type
 - **Measurements:** Indexed by `user_id` + `date` for body metrics
 
 ### **Performance Optimizations:**
+
 - **Compound Indexes:** Multi-field indexes for complex queries
 - **Aggregation Pipelines:** Efficient data processing and statistics
 - **Connection Pooling:** Optimized MongoDB connection management
@@ -214,6 +225,7 @@ curl -X POST http://localhost:8000/recommend \
 ## 🚀 Future Extensibility
 
 ### **Ready-to-Implement Features:**
+
 - **📱 Real-time Heart Rate:** Streaming ingestion pipeline
 - **🌤️ Weather Integration:** Environmental context for recommendations
 - **🛒 Grocery Planning:** Meal recommendation with shopping lists
