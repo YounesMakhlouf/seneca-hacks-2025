@@ -1,4 +1,5 @@
 services:
+  # Database
   mongo:
     image: mongodb/mongodb-atlas-local:8.0
     container_name: bbr-mongo
@@ -12,22 +13,50 @@ services:
       - mongo-config:/data/configdb
     networks:
       - bbr-net
+
+  # Message Queue Infrastructure
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: bbr-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - bbr-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: bbr-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - bbr-net
+
+  # Main API Service
   api:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: bbr-api
+    depends_on:
+      - mongo
+      - kafka
     env_file:
       -  ./backend/.env
     environment:
       - USE_MONGO=${USE_MONGO:-1}
       - MONGODB_URI=${MONGODB_URI:-mongodb://bbr:bbrpass@mongo:27017/?directConnection=true}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8000:8000"
     networks:
       - bbr-net
-    depends_on:
-      - mongo
 
   form-corrector:
     build:
@@ -54,6 +83,25 @@ services:
       - form-corrector
     networks:
       - bbr-net
+
+  # Async Feedback Worker
+  feedback-worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: bbr-feedback-worker
+    depends_on:
+      - mongo
+      - kafka
+    environment:
+      - MONGODB_URI=${MONGODB_URI:-mongodb://bbr:bbrpass@mongo:27017/?directConnection=true}
+      - BBR_DB_NAME=${BBR_DB_NAME:-bbr}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC=${KAFKA_TOPIC:-feedback}
+      - KAFKA_GROUP_ID=${KAFKA_GROUP_ID:-feedback-worker}
+    networks:
+      - bbr-net
+    restart: unless-stopped
 volumes:
   mongo-data:
   mongo-config:

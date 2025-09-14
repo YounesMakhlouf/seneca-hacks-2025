@@ -219,3 +219,5 @@ seed_data()
 
 # Trigger async seeding task for MongoDB
 asyncio.get_event_loop().create_task(_maybe_seed_mongo())
+
+from . import endpoints
