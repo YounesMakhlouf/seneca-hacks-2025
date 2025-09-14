@@ -1,10 +1,17 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 export default function FormCorrector() {
   const [exercise, setExercise] = useState('pushup');
   const [status, setStatus] = useState('');
   const [videoUrl, setVideoUrl] = useState(null);
   const fileRef = useRef();
+  const API_BASE = process.env.REACT_APP_FORM_CORRECTOR_URL || 'http://localhost:9000';
+
+  useEffect(() => {
+    return () => {
+      if (videoUrl) URL.revokeObjectURL(videoUrl);
+    };
+  }, [videoUrl]);
 
   const onUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -14,13 +21,40 @@ export default function FormCorrector() {
     body.append('file', file);
     body.append('exercise', exercise);
     try {
-      const res = await fetch('http://localhost:9000/vision/analyze', {
+      const res = await fetch(`${API_BASE}/vision/analyze`, {
         method: 'POST',
+        headers: {
+          Accept: 'video/mp4,application/json',
+        },
         body,
       });
-      if (!res.ok) throw new Error('Upload failed');
+      const ctype = res.headers.get('content-type') || '';
+      if (!res.ok) {
+        // Try to parse JSON error message first
+        let msg = `Upload failed (${res.status})`;
+        try {
+          if (ctype.includes('application/json')) {
+            const j = await res.json();
+            if (j && (j.error || j.detail)) msg = j.error || j.detail;
+          } else {
+            const t = await res.text();
+            if (t) msg = t;
+          }
+        } catch (_) { /* ignore */ }
+        throw new Error(msg);
+      }
+      if (ctype.includes('application/json')) {
+        // Backend returned JSON instead of video; surface message
+        const j = await res.json();
+        throw new Error(j?.error || 'Unexpected JSON response from server');
+      }
       const blob = await res.blob();
-      setVideoUrl(URL.createObjectURL(blob));
+      if (!blob || !blob.size) throw new Error('Empty video returned');
+      const url = URL.createObjectURL(blob);
+      setVideoUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return url;
+      });
       setStatus('');
     } catch (err) {
       setStatus('Error: ' + err.message);
@@ -40,7 +74,7 @@ export default function FormCorrector() {
       </select>
 
       <div className="mt-4">
-        <input ref={fileRef} type="file" accept="video/mp4,video/webm" onChange={onUpload} className="hidden" />
+        <input ref={fileRef} type="file" accept="video/*" onChange={onUpload} className="hidden" />
         <button onClick={()=>fileRef.current?.click()} className="w-full py-3 rounded-xl bg-ink text-white">Upload Video</button>
       </div>
 

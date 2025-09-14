@@ -24,7 +24,15 @@ pip install -r requirements.txt fastapi uvicorn
 uvicorn app:app --port 9000 --reload
 ```
 
-Then open the app and go to Settings → "Open Form Corrector" to upload a short video. The processed MP4 will be displayed and can be downloaded.# ZenFlow Mobile-Style Web App (React + Tailwind)
+Then open the app and go to Settings → "Open Form Corrector" to upload a short video. The processed MP4 will be displayed and can be downloaded.
+
+If your FastAPI service runs on a different host/port, set an env var before starting:
+
+```powershell
+$env:REACT_APP_FORM_CORRECTOR_URL = "http://localhost:9000"; npm start
+```
+
+# ZenFlow Mobile-Style Web App (React + Tailwind)
 
 This is a Create React App–compatible project that renders a mobile-style UI similar to the provided screenshots. It uses Tailwind CSS for styling and React Router for navigation.
 
@@ -53,7 +61,13 @@ That will open http://localhost:3000/ and show the app inside a centered mobile 
 ## Notes
 - The bottom tab bar is fixed. On small screens it behaves like a native tab bar.
 - All images are placeholders from Unsplash.
-- This app is a UI scaffold; no backend calls are made.
+- The Form Corrector and Live Coach pages talk to the FastAPI at `REACT_APP_FORM_CORRECTOR_URL` (defaults to `http://localhost:9000`).
+
+## Troubleshooting uploads
+- Make sure the FastAPI server is running and shows `GET /health 200`.
+- If you see an error like "Unexpected JSON response", check the FastAPI logs for details.
+- Try a small MP4/WebM (≤ 20–30s). Large files can take longer and may time out in dev mode.
+- On Windows, ensure your PowerShell isn't blocking long-running Python processes.
 
 ## Scripts
 - `npm start` – Dev server

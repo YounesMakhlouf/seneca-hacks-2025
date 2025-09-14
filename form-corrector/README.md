@@ -9,6 +9,10 @@ A standalone FastAPI microservice that analyzes workout form (pushup/squat/plank
   - file: video/mp4
   - exercise: pushup | squat | plank
   - returns: video/mp4 with overlays
+- POST /vision/stream-frame (multipart/form-data)
+  - file: image/jpeg or image/png (single frame)
+  - exercise: pushup | squat | plank
+  - returns: JSON { feedback, angle, point, color, landmarks, width, height }
 
 ## Run locally (Windows PowerShell)
 
@@ -33,3 +37,8 @@ Once running, the frontend can POST to http://localhost:9000/vision/analyze.
 
 ## Reuse of Analyzer
 The logic comes from `exercise_analyzer.py` in this folder. We import and reuse it without changes.
+
+## Troubleshooting
+- If uploads fail with JSON errors, check the server logs for details; the service returns JSON with `error` on failures.
+- Very low FPS metadata in some videos can cause OpenCV writers to fail; the server includes a fallback FPS of 24.
+- CORS is enabled for local development and allows requests from any origin.
