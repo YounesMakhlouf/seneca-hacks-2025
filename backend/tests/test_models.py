@@ -2,9 +2,18 @@
 
 import pytest
 from pydantic import ValidationError
+
 from body_behavior_recommender.models import (
-    UserProfile, SleepEntry, NutritionEntry, ActivityEntry, MeasurementEntry,
-    MusicTrack, MealTemplate, WorkoutTemplate, RecommendRequest, RecommendResponse, Feedback
+    ActivityEntry,
+    Feedback,
+    MealTemplate,
+    MeasurementEntry,
+    MusicTrack,
+    NutritionEntry,
+    RecommendRequest,
+    RecommendResponse,
+    SleepEntry,
+    UserProfile,
 )
 
 
@@ -29,7 +38,7 @@ class TestUserProfile:
             bmi=22.5,
             fitness_level="beginner",
             goals="maintain",
-            join_date="2024-01-01"
+            join_date="2024-01-01",
         )
         assert user.pref_music_genres == {}
         assert user.pref_meal_cuisines == {}
@@ -50,7 +59,7 @@ class TestUserProfile:
                 bmi=22.9,
                 fitness_level="intermediate",
                 goals="weight_loss",
-                join_date="2024-01-01"
+                join_date="2024-01-01",
             )
 
 
@@ -76,7 +85,7 @@ class TestSleepEntry:
             light_sleep_minutes=270,
             sleep_efficiency=85.0,
             bedtime="invalid_time",  # Invalid format, but model accepts strings
-            wake_time="06:30"
+            wake_time="06:30",
         )
         # Model creation succeeds, validation would happen in business logic
         assert sleep_entry.bedtime == "invalid_time"
@@ -93,7 +102,7 @@ class TestSleepEntry:
                 light_sleep_minutes=270,
                 sleep_efficiency="high",  # Should be float
                 bedtime="22:30",
-                wake_time="06:30"
+                wake_time="06:30",
             )
 
 
@@ -119,7 +128,7 @@ class TestNutritionEntry:
             fat_g=0.0,
             fiber_g=0.0,
             sugar_g=0.0,
-            sodium_mg=0.0
+            sodium_mg=0.0,
         )
         assert nutrition.calories_consumed == 0
         assert nutrition.protein_g == 0.0
@@ -146,7 +155,7 @@ class TestActivityEntry:
                 active_minutes=45,
                 distance_km=6.0,
                 heart_rate_avg="normal",  # Should be int
-                workout_duration=30
+                workout_duration=30,
             )
 
 
@@ -168,7 +177,7 @@ class TestMeasurementEntry:
             bicep=30.0,
             thigh=50.0,
             body_water=60.0,
-            bone_mass=3.0
+            bone_mass=3.0,
         )
         assert measurement.measurement_id == "meas_1"
         assert measurement.weight == 70.0
@@ -190,7 +199,7 @@ class TestMeasurementEntry:
             thigh=50.0,
             body_water=60.0,
             bone_mass=3.0,
-            notes="Post-workout measurement"
+            notes="Post-workout measurement",
         )
         assert measurement.notes == "Post-workout measurement"
 
@@ -215,7 +224,7 @@ class TestCatalogModels:
                 bpm=120,
                 energy="high",  # Should be float
                 valence=0.8,
-                genres=["pop"]
+                genres=["pop"],
             )
 
     def test_valid_meal_template(self, sample_meal_template):
@@ -239,7 +248,7 @@ class TestCatalogModels:
             sugar_g=8.0,
             sodium_mg=200.0,
             allergens=["nuts", "gluten"],
-            diet_ok=["omnivore"]
+            diet_ok=["omnivore"],
         )
         assert "nuts" in meal.allergens
         assert "gluten" in meal.allergens
@@ -270,7 +279,7 @@ class TestRequestResponseModels:
             now="2024-01-15T10:30:00Z",
             current_hr=120,
             rpe=6.5,
-            hours_since_last_meal=2.5
+            hours_since_last_meal=2.5,
         )
         assert request.intent == "music"
         assert request.current_hr == 120
@@ -282,7 +291,7 @@ class TestRequestResponseModels:
             domain="music",
             state={"Readiness": 75, "Fuel": 60, "Strain": 45},
             item={"id": "track_1", "title": "Test Song"},
-            bandit_arm="high_energy"
+            bandit_arm="high_energy",
         )
         assert response.domain == "music"
         assert response.state["Readiness"] == 75
@@ -290,11 +299,7 @@ class TestRequestResponseModels:
 
     def test_feedback_minimal(self):
         """Test Feedback with minimal fields."""
-        feedback = Feedback(
-            user_id="test_user",
-            domain="music",
-            item_id="track_1"
-        )
+        feedback = Feedback(user_id="test_user", domain="music", item_id="track_1")
         assert feedback.user_id == "test_user"
         assert feedback.thumbs == 0
         assert feedback.completed is None
@@ -311,7 +316,7 @@ class TestRequestResponseModels:
             rpe=7.0,
             ate=None,
             protein_gap_closed_norm=None,
-            skipped_early=0
+            skipped_early=0,
         )
         assert feedback.thumbs == 1
         assert feedback.completed == 1

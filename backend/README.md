@@ -39,10 +39,10 @@
 
 ## 🏗️ Architecture
 
-![Architecture](static/image.png)
+![Architecture](image.png)
 
 #### Detailled architecture
-![Detailled architecture](static/image-1.png)
+![Detailled architecture](image-1.png)
 
 ### **Core Components:**
 - **Entry Point:** `main.py` + `src/body_behavior_recommender/app.py`

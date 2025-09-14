@@ -1,18 +1,35 @@
 """API endpoints for the Body-to-Behavior Recommender."""
 
 from fastapi import HTTPException
-from .db import get_user as db_get_user, get_recent_entries
 
-from .models import RecommendRequest, RecommendResponse, Feedback
+from .app import MEALS, MUSIC, WORKOUTS, app
+from .data_loader import data_loader
+from .db import get_recent_entries
+from .db import get_user as db_get_user
+from .models import (
+    ActivityEntry,
+    Feedback,
+    NutritionEntry,
+    RecommendRequest,
+    RecommendResponse,
+    SleepEntry,
+)
 from .services import (
-    compute_state, compute_state_entries, choose_domain, thompson_sample_contextual,
-    filter_music_candidates, filter_meal_candidates, filter_workout_candidates,
-    rank_music, rank_meals, rank_workouts,
-    reward_from_feedback, update_bandit, update_preferences
+    choose_domain,
+    compute_state_entries,
+    filter_meal_candidates,
+    filter_music_candidates,
+    filter_workout_candidates,
+    generate_recommendation_explanation,
+    rank_meals,
+    rank_music,
+    rank_workouts,
+    reward_from_feedback,
+    thompson_sample_contextual,
+    update_bandit,
+    update_preferences,
 )
 from .utils import get_today_iso
-from .app import app, MUSIC, MEALS, WORKOUTS
-from .data_loader import data_loader
 
 
 @app.get("/")
@@ -21,7 +38,7 @@ def read_root():
     return {
         "name": "Body-to-Behavior Recommender API",
         "version": "0.1.0",
-        "description": "AI-powered contextual recommendations for music, meals, and workouts"
+        "description": "AI-powered contextual recommendations for music, meals, and workouts",
     }
 
 
@@ -38,13 +55,15 @@ def get_state(user_id: str):
     if not doc:
         raise HTTPException(404, "user not found")
     from .models import UserProfile
+
     user = UserProfile(**doc)
 
     today = get_today_iso(None)
     sleep_docs = get_recent_entries("sleep", user_id, limit=7)
     nut_docs = get_recent_entries("nutrition", user_id, limit=3)
     act_docs = get_recent_entries("activity", user_id, limit=7)
-    from .models import SleepEntry, NutritionEntry, ActivityEntry
+    from .models import ActivityEntry, NutritionEntry, SleepEntry
+
     sleep_entries = [SleepEntry(**d) for d in sleep_docs]
     todays_nutrition = None
     if nut_docs:
@@ -53,7 +72,9 @@ def get_state(user_id: str):
                 todays_nutrition = NutritionEntry(**d)
                 break
     activity_entries = [ActivityEntry(**d) for d in act_docs]
-    state = compute_state_entries(user, sleep_entries, todays_nutrition, activity_entries)
+    state = compute_state_entries(
+        user, sleep_entries, todays_nutrition, activity_entries
+    )
     return {"user_id": user_id, "date": today, "state": state}
 
 
@@ -64,13 +85,13 @@ def recommend(req: RecommendRequest):
     if not doc:
         raise HTTPException(404, "user not found")
     from .models import UserProfile
+
     user = UserProfile(**doc)
 
     today = get_today_iso(req.now)
     sleep_docs = get_recent_entries("sleep", req.user_id, limit=7)
     nut_docs = get_recent_entries("nutrition", req.user_id, limit=3)
     act_docs = get_recent_entries("activity", req.user_id, limit=7)
-    from .models import SleepEntry, NutritionEntry, ActivityEntry
     sleep_entries = [SleepEntry(**d) for d in sleep_docs]
     todays_nutrition = None
     if nut_docs:
@@ -79,7 +100,9 @@ def recommend(req: RecommendRequest):
                 todays_nutrition = NutritionEntry(**d)
                 break
     activity_entries = [ActivityEntry(**d) for d in act_docs]
-    state = compute_state_entries(user, sleep_entries, todays_nutrition, activity_entries)
+    state = compute_state_entries(
+        user, sleep_entries, todays_nutrition, activity_entries
+    )
     domain = choose_domain(req.intent, state, req.hours_since_last_meal)
     arm = thompson_sample_contextual(req.user_id, domain, state)
 
@@ -105,7 +128,24 @@ def recommend(req: RecommendRequest):
         item = ranked[0][0]
         payload = item.model_dump()
 
-    return RecommendResponse(domain=domain, state=state, item=payload, bandit_arm=arm)
+    # Generate personalized explanation
+    explanation = generate_recommendation_explanation(
+        user=user,
+        domain=domain,
+        recommendation_item=payload,
+        state=state,
+        sleep_entries=sleep_entries,
+        todays_nutrition=todays_nutrition,
+        activity_entries=activity_entries,
+    )
+
+    return RecommendResponse(
+        domain=domain,
+        state=state,
+        item=payload,
+        bandit_arm=arm,
+        explanation=explanation,
+    )
 
 
 @app.post("/feedback")
@@ -115,6 +155,7 @@ def submit_feedback(fb: Feedback):
     if not doc:
         raise HTTPException(404, "user not found")
     from .models import UserProfile
+
     user = UserProfile(**doc)
 
     # Infer arm by a simple mapping: pick the arm whose filter would have included the item
@@ -125,7 +166,8 @@ def submit_feedback(fb: Feedback):
     sleep_docs = get_recent_entries("sleep", fb.user_id, limit=7)
     nut_docs = get_recent_entries("nutrition", fb.user_id, limit=3)
     act_docs = get_recent_entries("activity", fb.user_id, limit=7)
-    from .models import SleepEntry, NutritionEntry, ActivityEntry
+    from .models import ActivityEntry, NutritionEntry, SleepEntry
+
     sleep_entries = [SleepEntry(**d) for d in sleep_docs]
     todays_nutrition = None
     if nut_docs:
@@ -134,7 +176,9 @@ def submit_feedback(fb: Feedback):
                 todays_nutrition = NutritionEntry(**d)
                 break
     activity_entries = [ActivityEntry(**d) for d in act_docs]
-    state = compute_state_entries(user, sleep_entries, todays_nutrition, activity_entries)
+    state = compute_state_entries(
+        user, sleep_entries, todays_nutrition, activity_entries
+    )
     arm_to_update = thompson_sample_contextual(fb.user_id, fb.domain, state)
     r = reward_from_feedback(fb.domain, fb)
     update_bandit(fb.user_id, fb.domain, arm_to_update, r, state)
@@ -143,13 +187,13 @@ def submit_feedback(fb: Feedback):
     item_tags = []
     if fb.domain == "music":
         track = next((m for m in MUSIC if m.id == fb.item_id), None)
-        item_tags = (track.genres if track else [])
+        item_tags = track.genres if track else []
     elif fb.domain == "meal":
         meal = next((m for m in MEALS if m.id == fb.item_id), None)
-        item_tags = (meal.cuisine_tags if meal else [])
+        item_tags = meal.cuisine_tags if meal else []
     else:
         workout = next((w for w in WORKOUTS if w.id == fb.item_id), None)
-        item_tags = (workout.focus_tags if workout else [])
+        item_tags = workout.focus_tags if workout else []
 
     update_preferences(user, fb.domain, item_tags, fb.thumbs)
     return {"ok": True, "reward": r, "arm_updated": arm_to_update}
@@ -186,6 +230,7 @@ def get_workout_catalog():
 def get_data_summary():
     """Get a summary of loaded data."""
     from .db import collection_count
+
     return {
         "users": collection_count("users"),
         "sleep_datasets": collection_count("sleep"),
@@ -202,9 +247,15 @@ def get_data_summary():
         "sample_user_ids": [],  # Would need separate query to get sample IDs from MongoDB
         "data_sources": {
             "enhanced": True,
-            "available_datasets": ["users", "sleep", "nutrition", "activities", "measurements"],
-            "storage": "mongodb"
-        }
+            "available_datasets": [
+                "users",
+                "sleep",
+                "nutrition",
+                "activities",
+                "measurements",
+            ],
+            "storage": "mongodb",
+        },
     }
 
 
@@ -230,12 +281,15 @@ def get_user_recent_data(user_id: str, days: int = 7):
 def get_user_measurements_endpoint(user_id: str, limit: int = 10):
     """Get body measurements for a user."""
     from .db import get_user_measurements
+
     measurements = get_user_measurements(user_id, limit)
     if not measurements:
-        raise HTTPException(status_code=404, detail="User not found or no measurements available")
+        raise HTTPException(
+            status_code=404, detail="User not found or no measurements available"
+        )
     return {
         "user_id": user_id,
         "total_measurements": len(measurements),
         "recent_measurements": measurements,
-        "latest_measurement": measurements[0] if measurements else None
+        "latest_measurement": measurements[0] if measurements else None,
     }

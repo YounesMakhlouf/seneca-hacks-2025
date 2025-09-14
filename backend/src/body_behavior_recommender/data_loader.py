@@ -2,10 +2,10 @@
 
 import json
 import os
-from typing import Dict, List, Optional
 from collections import defaultdict
+from typing import Dict, List
 
-from .models import UserProfile, SleepEntry, NutritionEntry, ActivityEntry
+from .models import ActivityEntry, NutritionEntry, SleepEntry, UserProfile
 
 USERS_CAP = int(os.getenv("BBR_USERS_CAP", "50000"))
 SLEEP_CAP = int(os.getenv("BBR_SLEEP_CAP", "500000"))
@@ -56,7 +56,9 @@ class EnhancedDataLoader:
             total_sleep = sum(len(entries) for entries in self.sleep.values())
             total_nutrition = sum(len(entries) for entries in self.nutrition.values())
             total_activity = sum(len(entries) for entries in self.activity.values())
-            total_measurements = sum(len(entries) for entries in self.measurements.values())
+            total_measurements = sum(
+                len(entries) for entries in self.measurements.values()
+            )
 
             print(f"✅ Loaded {len(self.users)} users")
             print(f"✅ Loaded {total_sleep} sleep entries")
@@ -88,20 +90,26 @@ class EnhancedDataLoader:
         """Load user profiles from JSON file (fallback method)."""
         file_path = os.path.join(self.data_dir, "fitness-users.json")
 
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             users_data = json.load(f)
 
         for user_data in users_data:
             # Add default preference and equipment data
-            user_data.update({
-                "pref_music_genres": {"lofi": 0.5, "pop": 0.3, "synthwave": 0.2},
-                "pref_meal_cuisines": {"mediterranean": 0.4, "mexican": 0.3, "indian": 0.3},
-                "pref_workout_focus": {"endurance": 0.6, "mobility": 0.4},
-                "hr_max_override": None,
-                "allergens": [],
-                "diet_flags": [],
-                "equipment": ["shoes", "yoga_mat"]
-            })
+            user_data.update(
+                {
+                    "pref_music_genres": {"lofi": 0.5, "pop": 0.3, "synthwave": 0.2},
+                    "pref_meal_cuisines": {
+                        "mediterranean": 0.4,
+                        "mexican": 0.3,
+                        "indian": 0.3,
+                    },
+                    "pref_workout_focus": {"endurance": 0.6, "mobility": 0.4},
+                    "hr_max_override": None,
+                    "allergens": [],
+                    "diet_flags": [],
+                    "equipment": ["shoes", "yoga_mat"],
+                }
+            )
 
             # Add equipment based on user goals
             if user_data["goals"] == "endurance":
@@ -120,7 +128,7 @@ class EnhancedDataLoader:
         if not os.path.exists(file_path):
             file_path = os.path.join(self.data_dir, "fitness-users.json")
 
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             users_data = json.load(f)
 
         # Limit to first USERS_CAP users for memory efficiency
@@ -130,9 +138,13 @@ class EnhancedDataLoader:
 
         for user_data in users_data:
             # Calculate BMI if not present
-            if "bmi" not in user_data and "height" in user_data and "weight" in user_data:
+            if (
+                "bmi" not in user_data
+                and "height" in user_data
+                and "weight" in user_data
+            ):
                 height_m = user_data["height"] / 100  # Convert cm to meters
-                user_data["bmi"] = round(user_data["weight"] / (height_m ** 2), 1)
+                user_data["bmi"] = round(user_data["weight"] / (height_m**2), 1)
             elif "bmi" not in user_data:
                 user_data["bmi"] = 25.0  # Default BMI
 
@@ -143,16 +155,25 @@ class EnhancedDataLoader:
                 fitness_level = user_data.get("fitness_level", "Beginner").lower()
 
                 if age < 30:
-                    user_data["goals"] = "strength" if fitness_level == "advanced" else "endurance"
+                    user_data["goals"] = (
+                        "strength" if fitness_level == "advanced" else "endurance"
+                    )
                 elif age > 50:
                     user_data["goals"] = "flexibility"
                 else:
                     user_data["goals"] = "weight_loss"
 
             # Add default preference and equipment data if not present
-            user_data.setdefault("pref_music_genres", {"lofi": 0.5, "pop": 0.3, "synthwave": 0.2})
-            user_data.setdefault("pref_meal_cuisines", {"mediterranean": 0.4, "mexican": 0.3, "indian": 0.3})
-            user_data.setdefault("pref_workout_focus", {"endurance": 0.6, "mobility": 0.4})
+            user_data.setdefault(
+                "pref_music_genres", {"lofi": 0.5, "pop": 0.3, "synthwave": 0.2}
+            )
+            user_data.setdefault(
+                "pref_meal_cuisines",
+                {"mediterranean": 0.4, "mexican": 0.3, "indian": 0.3},
+            )
+            user_data.setdefault(
+                "pref_workout_focus", {"endurance": 0.6, "mobility": 0.4}
+            )
             user_data.setdefault("hr_max_override", None)
             user_data.setdefault("allergens", [])
             user_data.setdefault("diet_flags", [])
@@ -184,13 +205,15 @@ class EnhancedDataLoader:
         print("📊 Loading enhanced sleep data...")
 
         try:
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 sleep_data = json.load(f)
 
             # Limit to reasonable number for memory management
             if len(sleep_data) > SLEEP_CAP:
                 sleep_data = sleep_data[:SLEEP_CAP]
-                print(f"📊 Limited sleep data to {SLEEP_CAP} entries for memory efficiency")
+                print(
+                    f"📊 Limited sleep data to {SLEEP_CAP} entries for memory efficiency"
+                )
 
             entries_processed = 0
             for entry_data in sleep_data:
@@ -199,20 +222,30 @@ class EnhancedDataLoader:
                     sleep_entry = {
                         "user_id": entry_data["user_id"],
                         "date": entry_data["date"],
-                        "sleep_duration_minutes": int(entry_data.get("total_sleep", 0) * 60),
+                        "sleep_duration_minutes": int(
+                            entry_data.get("total_sleep", 0) * 60
+                        ),
                         "deep_sleep_minutes": int(entry_data.get("deep_sleep", 0) * 60),
                         "rem_sleep_minutes": int(entry_data.get("rem_sleep", 0) * 60),
-                        "light_sleep_minutes": int(entry_data.get("light_sleep", 0) * 60),
+                        "light_sleep_minutes": int(
+                            entry_data.get("light_sleep", 0) * 60
+                        ),
                         "sleep_efficiency": entry_data.get("sleep_efficiency", 75.0),
-                        "bedtime": str(entry_data.get("bedtime", "23:30")).split()[0] if " " in str(entry_data.get("bedtime", "23:30")) else str(entry_data.get("bedtime", "23:30")),
-                        "wake_time": str(entry_data.get("wake_time", "07:00")).split()[0] if " " in str(entry_data.get("wake_time", "07:00")) else str(entry_data.get("wake_time", "07:00"))
+                        "bedtime": str(entry_data.get("bedtime", "23:30")).split()[0]
+                        if " " in str(entry_data.get("bedtime", "23:30"))
+                        else str(entry_data.get("bedtime", "23:30")),
+                        "wake_time": str(entry_data.get("wake_time", "07:00")).split()[
+                            0
+                        ]
+                        if " " in str(entry_data.get("wake_time", "07:00"))
+                        else str(entry_data.get("wake_time", "07:00")),
                     }
 
                     entry = SleepEntry(**sleep_entry)
                     self.sleep[entry.user_id].append(entry)
                     entries_processed += 1
 
-                except (ValueError, TypeError) as e:
+                except (ValueError, TypeError):
                     continue  # Skip malformed entries
 
             print(f"📊 Processed {entries_processed} sleep entries")
@@ -234,11 +267,13 @@ class EnhancedDataLoader:
 
         print("📊 Loading enhanced activity data (bulk slice)...")
         try:
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 activity_data = json.load(f)
             if len(activity_data) > ACTIVITY_CAP:
                 activity_data = activity_data[:ACTIVITY_CAP]
-                print(f"📊 Limited activity data to {ACTIVITY_CAP} entries for memory efficiency")
+                print(
+                    f"📊 Limited activity data to {ACTIVITY_CAP} entries for memory efficiency"
+                )
 
             entries_processed = 0
             for entry_data in activity_data:
@@ -248,10 +283,14 @@ class EnhancedDataLoader:
                         "date": entry_data["date"],
                         "steps": entry_data.get("steps", 0),
                         "calories_burned": entry_data.get("calories_burned", 0),
-                        "active_minutes": entry_data.get("duration", entry_data.get("active_minutes", 0)),
+                        "active_minutes": entry_data.get(
+                            "duration", entry_data.get("active_minutes", 0)
+                        ),
                         "distance_km": entry_data.get("distance", 0.0),
-                        "heart_rate_avg": entry_data.get("heart_rate_avg", entry_data.get("avg_hr", 0)),
-                        "workout_duration": entry_data.get("duration", 0)
+                        "heart_rate_avg": entry_data.get(
+                            "heart_rate_avg", entry_data.get("avg_hr", 0)
+                        ),
+                        "workout_duration": entry_data.get("duration", 0),
                     }
                     entry = ActivityEntry(**activity_entry)
                     self.activity[entry.user_id].append(entry)
@@ -274,7 +313,7 @@ class EnhancedDataLoader:
         if not os.path.exists(file_path):
             return
 
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             measurements_data = json.load(f)
 
         # Limit to MEASUREMENTS_CAP entries for memory efficiency
@@ -289,7 +328,7 @@ class EnhancedDataLoader:
         """Load user profiles from JSON file."""
         file_path = os.path.join(self.data_dir, "fitness-users.json")
 
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             users_data = json.load(f)
 
         # BUG: previously reloaded fitness-users.json here causing duplicate / conflicting users.
@@ -299,7 +338,7 @@ class EnhancedDataLoader:
         """Load sleep data from JSON file."""
         file_path = os.path.join(self.data_dir, "fitness-sleep.json")
 
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             sleep_data = json.load(f)
 
         for entry_data in sleep_data:
@@ -320,7 +359,7 @@ class EnhancedDataLoader:
         """Load sleep data from JSON file."""
         file_path = os.path.join(self.data_dir, "fitness-sleep.json")
 
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             sleep_data = json.load(f)
 
         for entry_data in sleep_data:
@@ -341,7 +380,7 @@ class EnhancedDataLoader:
         """Load nutrition data from JSON file."""
         file_path = os.path.join(self.data_dir, "fitness-nutrition.json")
 
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             nutrition_data = json.load(f)
 
         for entry_data in nutrition_data:
@@ -356,7 +395,7 @@ class EnhancedDataLoader:
         """Load activity data from JSON file."""
         file_path = os.path.join(self.data_dir, "fitness-activities.json")
 
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             activity_data = json.load(f)
 
         for entry_data in activity_data:
@@ -385,12 +424,14 @@ class EnhancedDataLoader:
                 "sleep": self._get_date_range(self.sleep.get(user_id, [])),
                 "nutrition": self._get_date_range(self.nutrition.get(user_id, [])),
                 "activity": self._get_date_range(self.activity.get(user_id, [])),
-            }
+            },
         }
 
         # Add measurement info if available
         if user_id in self.measurements and self.measurements[user_id]:
-            latest_measurement = max(self.measurements[user_id], key=lambda x: x.get("date", ""))
+            latest_measurement = max(
+                self.measurements[user_id], key=lambda x: x.get("date", "")
+            )
             summary["latest_measurement"] = latest_measurement
 
         return summary
@@ -417,15 +458,22 @@ class EnhancedDataLoader:
             "user_id": user_id,
             "days": days,
             "cutoff_date": cutoff_date,
-            "recent_sleep": [s for s in self.sleep.get(user_id, []) if s.date >= cutoff_date],
-            "recent_nutrition": [n for n in self.nutrition.get(user_id, []) if n.date >= cutoff_date],
-            "recent_activity": [a for a in self.activity.get(user_id, []) if a.date >= cutoff_date],
+            "recent_sleep": [
+                s for s in self.sleep.get(user_id, []) if s.date >= cutoff_date
+            ],
+            "recent_nutrition": [
+                n for n in self.nutrition.get(user_id, []) if n.date >= cutoff_date
+            ],
+            "recent_activity": [
+                a for a in self.activity.get(user_id, []) if a.date >= cutoff_date
+            ],
         }
 
         # Add recent measurements if available
         if user_id in self.measurements:
             result["recent_measurements"] = [
-                m for m in self.measurements[user_id]
+                m
+                for m in self.measurements[user_id]
                 if m.get("date", "") >= cutoff_date
             ]
 

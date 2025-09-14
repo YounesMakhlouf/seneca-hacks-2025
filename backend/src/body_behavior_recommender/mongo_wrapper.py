@@ -9,13 +9,16 @@ Usage:
     users = wrapper.fetch_documents(10, {})
     ...
 """
-from typing import Generic, Type, TypeVar, List, Dict, Any
+
+import os
+from typing import Any, Dict, Generic, List, Type, TypeVar
+
 from bson import ObjectId
 from pydantic import BaseModel
 from pymongo import MongoClient, errors
-import os
 
 T = TypeVar("T", bound=BaseModel)
+
 
 class MongoClientWrapper(Generic[T]):
     def __init__(
@@ -28,16 +31,22 @@ class MongoClientWrapper(Generic[T]):
         self.model = model
         self.collection_name = collection_name
         self.database_name = database_name or os.getenv("BBR_DB_NAME", "bbr")
-        self.mongodb_uri = mongodb_uri or os.getenv("MONGODB_URI", "mongodb://bbr:bbrpass@localhost:27017/?authSource=admin")
+        self.mongodb_uri = mongodb_uri or os.getenv(
+            "MONGODB_URI", "mongodb://bbr:bbrpass@localhost:27017/?authSource=admin"
+        )
         try:
-            self.client = MongoClient(self.mongodb_uri, appname="body_behavior_recommender")
+            self.client = MongoClient(
+                self.mongodb_uri, appname="body_behavior_recommender"
+            )
             self.client.admin.command("ping")
         except Exception as e:
             print(f"Failed to initialize MongoClientWrapper: {e}")
             raise
         self.database = self.client[self.database_name]
         self.collection = self.database[self.collection_name]
-        print(f"Connected to MongoDB: {self.mongodb_uri} DB: {self.database_name} Collection: {self.collection_name}")
+        print(
+            f"Connected to MongoDB: {self.mongodb_uri} DB: {self.database_name} Collection: {self.collection_name}"
+        )
 
     def __enter__(self) -> "MongoClientWrapper":
         return self
@@ -55,7 +64,9 @@ class MongoClientWrapper(Generic[T]):
 
     def ingest_documents(self, documents: List[T]) -> None:
         try:
-            if not documents or not all(isinstance(doc, BaseModel) for doc in documents):
+            if not documents or not all(
+                isinstance(doc, BaseModel) for doc in documents
+            ):
                 raise ValueError("Documents must be a list of Pydantic models.")
             dict_documents = [doc.model_dump() for doc in documents]
             for doc in dict_documents:

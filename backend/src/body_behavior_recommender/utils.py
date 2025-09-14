@@ -1,11 +1,16 @@
 """Utility functions for the Body-to-Behavior Recommender."""
 
-from typing import List, Dict, Optional, Tuple
-from datetime import datetime
 import random
+from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 
-from .models import UserProfile, SleepEntry, NutritionEntry, ActivityEntry, MusicTrack, MealTemplate, WorkoutTemplate
+from .models import (
+    MealTemplate,
+    UserProfile,
+    WorkoutTemplate,
+)
 
 
 def clamp01(x: float) -> float:
@@ -38,7 +43,7 @@ def get_today_iso(now_iso: Optional[str]) -> str:
 
 def compute_hr_max(user: UserProfile) -> int:
     """Calculate maximum heart rate for a user."""
-    return user.hr_max_override or int(208 - 0.7*user.age)
+    return user.hr_max_override or int(208 - 0.7 * user.age)
 
 
 def energy_cap_from_state(state: Dict[str, int]) -> float:
@@ -50,18 +55,18 @@ def energy_cap_from_state(state: Dict[str, int]) -> float:
     return 0.85
 
 
-def target_bpm_from_state(user: UserProfile, state: Dict[str,int]) -> int:
+def target_bpm_from_state(user: UserProfile, state: Dict[str, int]) -> int:
     """Calculate target BPM based on user state."""
     hrmax = compute_hr_max(user)
     if state["Readiness"] >= 60 and state["Strain"] < 60:
-        target_hr = 0.65*hrmax
+        target_hr = 0.65 * hrmax
     else:
-        target_hr = 0.55*hrmax
-    bpm = int(np.clip((target_hr/hrmax)*180.0, 90, 180))
+        target_hr = 0.55 * hrmax
+    bpm = int(np.clip((target_hr / hrmax) * 180.0, 90, 180))
     return bpm
 
 
-def cosine_pref_fit(tag_weights: Dict[str,float], item_tags: List[str]) -> float:
+def cosine_pref_fit(tag_weights: Dict[str, float], item_tags: List[str]) -> float:
     """Calculate preference fit using cosine similarity."""
     if not item_tags:
         return 0.0
@@ -93,7 +98,9 @@ def risk_penalties_meal(meal: MealTemplate, user: UserProfile) -> float:
     return 0.0
 
 
-def risk_penalties_workout(w: WorkoutTemplate, user: UserProfile, state: Dict[str,int]) -> float:
+def risk_penalties_workout(
+    w: WorkoutTemplate, user: UserProfile, state: Dict[str, int]
+) -> float:
     """Calculate risk penalties for a workout."""
     # Cap high intensity on low readiness/high strain
     if state["Readiness"] < 40 and w.intensity_zone == "Tempo":
@@ -101,7 +108,7 @@ def risk_penalties_workout(w: WorkoutTemplate, user: UserProfile, state: Dict[st
     return 0.0
 
 
-def zone_from_state(state: Dict[str,int]) -> str:
+def zone_from_state(state: Dict[str, int]) -> str:
     """Determine appropriate workout zone from user state."""
     if state["Readiness"] < 40 or state["Strain"] >= 70:
         return "Z2_low"
