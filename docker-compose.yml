@@ -1,0 +1,34 @@
+services:
+  mongo:
+    image: mongodb/mongodb-atlas-local:8.0
+    container_name: bbr-mongo
+    ports:
+      - "${MONGO_HOST_PORT:-27017}:27017"
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=${MONGODB_ROOT_USER:-bbr}
+      - MONGODB_INITDB_ROOT_PASSWORD=${MONGODB_ROOT_PASS:-bbrpass}
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    networks:
+      - bbr-net
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bbr-api
+    env_file:
+      - .env
+    environment:
+      - USE_MONGO=${USE_MONGO:-1}
+      - MONGODB_URI=${MONGODB_URI:-mongodb://bbr:bbrpass@mongo:27017/?directConnection=true}
+    ports:
+      - "8000:8000"
+    networks:
+      - bbr-net
+volumes:
+  mongo-data:
+  mongo-config:
+networks:
+  bbr-net:
+    name: bbr-net
